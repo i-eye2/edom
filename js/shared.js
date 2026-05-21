@@ -423,7 +423,7 @@ function renderFooter(navRows, hp) {
     <div class="footer-bottom">
       <div class="footer-bottom-inner">
         <p>${copy}</p>
-        <a href="https://makeurwebsite.vercel.app" target="_blank" class="made-by-badge">
+        <a href="https://makeurwebsite.site" target="_blank" class="made-by-badge">
           Made by <span>makeurwebsite</span>
         </a>
       </div>
