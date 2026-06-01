@@ -302,3 +302,42 @@ using (bucket_id = 'order-proofs');
 create policy "Allow admin full access to order-proofs" 
 on storage.objects for all 
 using (bucket_id = 'order-proofs' and exists (select 1 from public.profiles where id = auth.uid() and role = 'admin'));
+
+-- ============================================================
+-- 12. ENABLE SUPABASE REALTIME FOR ALL DYNAMIC TABLES
+-- ============================================================
+do $$
+declare
+  t_name text;
+  tables_list text[] := array['products', 'orders', 'profiles', 'expenses', 'coupons', 'feedbacks', 'analytics_events', 'site_settings', 'announcements', 'activity_logs'];
+begin
+  -- Create the publication if it doesn't exist
+  if not exists (select 1 from pg_publication where pubname = 'supabase_realtime') then
+    create publication supabase_realtime;
+  end if;
+
+  -- Add tables individually to avoid duplicate errors
+  foreach t_name in array tables_list loop
+    begin
+      execute format('alter publication supabase_realtime add table %I', t_name);
+    exception
+      when duplicate_object then
+        -- Table already in publication, ignore
+        null;
+      when others then
+        -- Any other error, ignore or handle gracefully
+        null;
+    end;
+  end loop;
+
+  -- Set REPLICA IDENTITY FULL for all tables so Supabase Realtime sends both old and new data on updates/deletes
+  foreach t_name in array tables_list loop
+    begin
+      execute format('alter table %I replica identity full', t_name);
+    exception
+      when others then
+        null;
+    end;
+  end loop;
+end;
+$$;

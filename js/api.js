@@ -4,6 +4,23 @@
 const EyeApi = (function () {
   let supabase = null;
   let ready = false;
+  const orderChimeAudio = new Audio('1.mp3');
+  orderChimeAudio.preload = 'auto';
+
+  const playedOrdersInMemory = new Set();
+  let orderChimeBC = null;
+  try {
+    if (typeof BroadcastChannel !== 'undefined') {
+      orderChimeBC = new BroadcastChannel('eye_order_chime');
+      orderChimeBC.onmessage = (event) => {
+        if (event.data && event.data.type === 'PLAYED_ORDER') {
+          playedOrdersInMemory.add(String(event.data.orderId));
+        }
+      };
+    }
+  } catch (e) {
+    console.warn('BroadcastChannel init failed:', e);
+  }
 
   // Optimized in-memory caches to reduce network calls
   const settingsCache = {};
@@ -33,6 +50,132 @@ const EyeApi = (function () {
     return !!(window.EYE_SUPABASE_URL && window.EYE_SUPABASE_ANON_KEY);
   }
 
+  const realtimeCallbacks = [];
+
+  function onRealtimeChange(callback) {
+    realtimeCallbacks.push(callback);
+    return () => {
+      const idx = realtimeCallbacks.indexOf(callback);
+      if (idx > -1) realtimeCallbacks.splice(idx, 1);
+    };
+  }
+
+  let realtimeChannel = null;
+
+  function initRealtime() {
+    if (!supabase || realtimeChannel) return;
+    
+    realtimeChannel = supabase
+      .channel('schema-db-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public' },
+        (payload) => {
+          const table = payload.table;
+          console.log(`[Realtime Notification] Change in table '${table}':`, payload);
+          
+          // Invalidate specific caches
+          if (table === 'products') {
+            invalidateCached('products');
+            if (payload.old && payload.old.id) invalidateCached(`product_${payload.old.id}`);
+            if (payload.old && payload.old.slug) invalidateCached(`product_${payload.old.slug}`);
+            if (payload.new && payload.new.id) invalidateCached(`product_${payload.new.id}`);
+            if (payload.new && payload.new.slug) invalidateCached(`product_${payload.new.slug}`);
+          } else if (table === 'orders') {
+            invalidateCached('orders');
+            
+            if (payload.eventType === 'INSERT') {
+              const orderId = payload.new && payload.new.id;
+              const isAdminPage = !!document.getElementById('adminWrap') || 
+                                  !!document.querySelector('.admin-sidebar') || 
+                                  location.href.includes('admin.html') || 
+                                  location.href.includes('admin-order.html') ||
+                                  location.pathname.includes('/admin') ||
+                                  location.pathname.includes('/admin-order');
+              if (orderId && isAdminPage) {
+                const sId = String(orderId);
+                
+                // 1. In-memory local check
+                if (playedOrdersInMemory.has(sId)) return;
+                
+                // 2. Storage fallback check
+                try {
+                  const lastPlayed = localStorage.getItem('last_played_order_id');
+                  if (lastPlayed === sId) {
+                    playedOrdersInMemory.add(sId);
+                    return;
+                  }
+                } catch (_) {}
+                
+                const isVisible = document.visibilityState === 'visible';
+                const delay = isVisible ? (Math.random() * 50) : (300 + Math.random() * 200);
+                
+                setTimeout(() => {
+                  // Re-check after timeout in case another tab claimed it or broadcast arrived
+                  if (playedOrdersInMemory.has(sId)) return;
+                  
+                  try {
+                    const lastPlayed = localStorage.getItem('last_played_order_id');
+                    if (lastPlayed === sId) {
+                      playedOrdersInMemory.add(sId);
+                      return;
+                    }
+                  } catch (_) {}
+                  
+                  // Play claims: record in-memory first
+                  playedOrdersInMemory.add(sId);
+                  
+                  // Broadcast claim to all other tabs instantly
+                  if (orderChimeBC) {
+                    orderChimeBC.postMessage({ type: 'PLAYED_ORDER', orderId: sId });
+                  }
+                  
+                  // Persist to localStorage
+                  try {
+                    localStorage.setItem('last_played_order_id', sId);
+                  } catch (_) {}
+                  
+                  // Play audio
+                  try {
+                    orderChimeAudio.currentTime = 0;
+                    orderChimeAudio.play().catch(err => {
+                      console.warn('[Realtime Sound] Chime autoplay prevented:', err);
+                    });
+                  } catch (e) {
+                    orderChimeAudio.currentTime = 0;
+                    orderChimeAudio.play().catch(() => {});
+                  }
+                }, delay);
+              }
+            }
+          } else if (table === 'profiles') {
+            invalidateCached('users');
+          } else if (table === 'expenses') {
+            invalidateCached('expenses');
+          } else if (table === 'site_settings' || table === 'announcements') {
+            invalidateCached('announcements');
+            invalidateCached('navigation_links');
+            if (payload.new && payload.new.key) {
+              delete settingsCache[payload.new.key];
+            }
+          }
+          
+          // Call registered callbacks
+          realtimeCallbacks.forEach(cb => {
+            try {
+              cb(table, payload);
+            } catch (e) {
+              console.error('Error in realtime callback:', e);
+            }
+          });
+        }
+      );
+    
+    realtimeChannel.subscribe((status) => {
+      console.log('Supabase Realtime subscription status:', status);
+    });
+  }
+
   async function init() {
     if (ready) return;
     ready = true;
@@ -43,6 +186,7 @@ const EyeApi = (function () {
         auth: { persistSession: true, autoRefreshToken: true },
       });
       window.eyeSupabase = supabase;
+      initRealtime();
     } catch (e) {
       console.warn('EYE: Supabase init failed', e);
       supabase = null;
@@ -1328,6 +1472,7 @@ const EyeApi = (function () {
   }
 
   return {
+    onRealtimeChange,
     init,
     hasRemote,
     isRemote,

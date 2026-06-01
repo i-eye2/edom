@@ -7,6 +7,11 @@ function adminLogout() {
 }
 
 function showPage(name, el) {
+  const sidebar = document.querySelector('.admin-sidebar');
+  const backdrop = document.querySelector('.admin-mobile-backdrop');
+  if (sidebar) sidebar.classList.remove('open');
+  if (backdrop) backdrop.classList.remove('open');
+
   document.querySelectorAll('.admin-page').forEach((p) => p.classList.remove('active'));
   document.querySelectorAll('.admin-nav-item').forEach((i) => i.classList.remove('active'));
   document.getElementById('page-' + name)?.classList.add('active');
@@ -1917,6 +1922,38 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     document.getElementById('adminLogin').style.display = 'none';
     document.getElementById('adminWrap').style.display = 'flex';
+
+    if (!document.querySelector('.admin-mobile-toggle')) {
+      const toggle = document.createElement('button');
+      toggle.type = 'button';
+      toggle.className = 'admin-mobile-toggle';
+      toggle.innerHTML = `
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      `;
+      toggle.onclick = () => {
+        const side = document.querySelector('.admin-sidebar');
+        const back = document.querySelector('.admin-mobile-backdrop');
+        if (side && back) {
+          const open = side.classList.toggle('open');
+          back.classList.toggle('open', open);
+        }
+      };
+
+      const back = document.createElement('div');
+      back.className = 'admin-mobile-backdrop';
+      back.onclick = () => {
+        const side = document.querySelector('.admin-sidebar');
+        if (side) side.classList.remove('open');
+        back.classList.remove('open');
+      };
+
+      document.body.appendChild(toggle);
+      document.body.appendChild(back);
+    }
     
     let activeTab = 'dashboard';
     try {
@@ -1937,6 +1974,37 @@ document.addEventListener('DOMContentLoaded', async () => {
       showPage(activeTab, tabEl);
     } else {
       showPage('dashboard', document.querySelector('.admin-nav-item'));
+    }
+
+    if (typeof EyeApi.onRealtimeChange === 'function') {
+      EyeApi.onRealtimeChange((table, payload) => {
+        console.log(`[Admin Realtime] Table '${table}' updated:`, payload);
+        
+        const activeTab = sessionStorage.getItem('admin_active_tab') || 'dashboard';
+        
+        if (activeTab === 'dashboard') {
+          initDashboard();
+        } else if (activeTab === 'products' && (table === 'products' || table === 'categories')) {
+          renderProductsTable(document.getElementById('pSearchInput')?.value || '');
+        } else if (activeTab === 'orders' && table === 'orders') {
+          const activeTabBtn = document.querySelector('.admin-tab.active');
+          const filter = activeTabBtn ? activeTabBtn.textContent.trim().toLowerCase() : 'all';
+          const filterParam = filter === 'pending' ? 'Pending' : filter === 'processing' ? 'Processing' : filter === 'shipped' ? 'Shipped' : filter === 'delivered' ? 'Delivered' : filter === 'returned' ? 'Returned' : 'all';
+          renderOrdersTable(filterParam);
+        } else if (activeTab === 'users' && table === 'profiles') {
+          renderUsersTable();
+        } else if (activeTab === 'coupons' && table === 'coupons') {
+          renderCouponsTable();
+        } else if (activeTab === 'accounting' && (table === 'expenses' || table === 'orders')) {
+          initAccounting();
+        } else if (activeTab === 'analytics' && table === 'analytics_events') {
+          initAnalytics();
+        } else if (activeTab === 'feedback' && table === 'feedbacks') {
+          renderFeedbackAdminTable();
+        } else if (activeTab === 'logs' && table === 'activity_logs') {
+          renderLogsTable();
+        }
+      });
     }
   } finally {
     initLoader();

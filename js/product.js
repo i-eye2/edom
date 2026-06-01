@@ -219,6 +219,7 @@ function pdSyncBuyRow(selectedSize) {
   const out = !Number.isFinite(st) || st < 1;
   const av = document.getElementById('pdAvail');
   const addBtn = document.getElementById('pdAddCart');
+  const buyBtn = document.getElementById('pdBuyNow');
   const pu = window.__pdUiCopy || {};
   if (av) {
     av.className = 'pd-availability ' + (out ? 'pd-availability-out' : 'pd-availability-in');
@@ -227,6 +228,10 @@ function pdSyncBuyRow(selectedSize) {
   if (addBtn) {
     addBtn.disabled = out;
     addBtn.textContent = out ? 'Out of stock' : pu.addToCartLabel || 'Add to cart';
+  }
+  if (buyBtn) {
+    buyBtn.disabled = out;
+    buyBtn.textContent = out ? 'Out of stock' : 'Buy Now';
   }
 }
 
@@ -331,6 +336,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         <p class="pd-availability pd-availability-in" id="pdAvail">Available</p>
         <div class="pd-actions">
           <button type="button" class="btn btn-primary" id="pdAddCart">${escapeHtml(pu.addToCartLabel || '')}</button>
+          <button type="button" class="btn btn-gold" id="pdBuyNow">Buy Now</button>
           <button type="button" class="btn btn-outline" id="pdWishlist">${escapeHtml(pu.wishlistLabel || '')}</button>
         </div>
         <a href="shop.html" class="pd-back">${escapeHtml(pu.backToShopLabel || '')}</a>
@@ -405,6 +411,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     Cart.add(__pdProduct, __pdSelectedSize);
   };
 
+  const buyNowBtn = document.getElementById('pdBuyNow');
+  if (buyNowBtn) {
+    buyNowBtn.onclick = () => {
+      if (!__pdSelectedSize) {
+        showToast('Please select a size');
+        return;
+      }
+      if (stockForProductSize(__pdProduct, __pdSelectedSize) < 1) return;
+      Cart.add(__pdProduct, __pdSelectedSize);
+      location.href = 'cart.html';
+    };
+  }
+
   await Wishlist.refresh();
   const wlBtn = document.getElementById('pdWishlist');
   const wlOn = () => Wishlist.has(__pdProduct.id);
@@ -468,6 +487,23 @@ document.addEventListener('DOMContentLoaded', async () => {
       const dx = e.changedTouches[0].screenX - __pdTouchStartX;
       if (dx < -40) goSlide(__pdIndex + 1);
       if (dx > 40) goSlide(__pdIndex - 1);
+    });
+  }
+
+  if (typeof EyeApi.onRealtimeChange === 'function') {
+    EyeApi.onRealtimeChange((table, payload) => {
+      if (table === 'products' && __pdProduct) {
+        const isCurrent = payload.new && String(payload.new.id) === String(__pdProduct.id);
+        if (isCurrent) {
+          console.log('[Product Realtime] Current product updated, re-fetching...');
+          EyeApi.fetchProductBySlugOrId({ id: __pdProduct.id }).then(prod => {
+            if (prod) {
+              __pdProduct = prod;
+              pdSyncBuyRow(__pdSelectedSize);
+            }
+          });
+        }
+      }
     });
   }
 });

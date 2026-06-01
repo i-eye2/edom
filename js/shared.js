@@ -67,14 +67,14 @@ const Cart = {
     }
     if (idx > -1) __cartItems[idx].maxStock = max;
     this.updateBadge();
-    scheduleCartPersist();
+    writeCartToStorage();
     showToast('Added to cart');
     return true;
   },
   remove(key) {
     __cartItems = __cartItems.filter((i) => i.key !== key);
     this.updateBadge();
-    scheduleCartPersist();
+    writeCartToStorage();
   },
   updateQty(key, qty) {
     const item = __cartItems.find((i) => i.key === key);
@@ -91,7 +91,7 @@ const Cart = {
       }
     }
     this.updateBadge();
-    scheduleCartPersist();
+    writeCartToStorage();
   },
   syncStockFromCatalog(products) {
     const map = Object.fromEntries((products || []).map((p) => [String(p.id), p]));
@@ -423,7 +423,7 @@ function renderFooter(navRows, hp) {
     <div class="footer-bottom">
       <div class="footer-bottom-inner">
         <p>${copy}</p>
-        <a href="https://makeurwebsite.site" target="_blank" class="made-by-badge">
+        <a href="https://makeurwebsite.vercel.app" target="_blank" class="made-by-badge">
           Made by <span>makeurwebsite</span>
         </a>
       </div>

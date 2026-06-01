@@ -125,6 +125,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     const sub = document.getElementById('shopSubtitle');
     if (sub && !sub.textContent.trim()) sub.textContent = sh.defaultSubtitle || '';
   }, 40);
+
+  if (typeof EyeApi.onRealtimeChange === 'function') {
+    EyeApi.onRealtimeChange((table, payload) => {
+      if (table === 'products') {
+        console.log('[Shop Realtime] Products updated, re-fetching...');
+        EyeApi.fetchProducts().then(prods => {
+          __shopProducts = prods || [];
+          filterChange();
+        });
+      }
+    });
+  }
 });
 
 function onCategoryCheckboxChange() {

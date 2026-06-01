@@ -41,12 +41,25 @@ document.addEventListener('DOMContentLoaded', async () => {
   Cart.syncStockFromCatalog(prods);
   renderCart();
   renderCartSuggestions(prods);
+
+  if (typeof EyeApi.onRealtimeChange === 'function') {
+    EyeApi.onRealtimeChange((table, payload) => {
+      if (table === 'products') {
+        console.log('[Cart Realtime] Products updated, re-syncing stock...');
+        EyeApi.fetchProducts().then(prods => {
+          Cart.syncStockFromCatalog(prods);
+          renderCart();
+          renderCartSuggestions(prods);
+        });
+      }
+    });
+  }
 });
 
 function renderCartSuggestions(allProducts) {
   const container = document.getElementById('cartContent');
   if (!container || !allProducts || !allProducts.length) return;
-  
+
   const cartItems = Cart.get();
   const cartIds = cartItems.map(i => String(i.productId));
   const cartCategories = [...new Set(cartItems.map(i => {
@@ -56,7 +69,7 @@ function renderCartSuggestions(allProducts) {
 
   // Filter products: prefer same category, exclude already in cart
   let suggestions = allProducts.filter(p => !cartIds.includes(String(p.id)) && p.visibility !== 'private');
-  
+
   if (cartCategories.length > 0) {
     const catMatches = suggestions.filter(p => cartCategories.includes(p.category));
     if (catMatches.length >= 2) {
@@ -166,9 +179,9 @@ function renderCart() {
       <div class="cart-items">
         <div class="cart-header"><span>Product</span><span>Price</span><span>Quantity</span><span></span></div>
         ${items
-          .map((item, i) => {
-            const k = JSON.stringify(item.key);
-            return `
+      .map((item, i) => {
+        const k = JSON.stringify(item.key);
+        return `
           <div class="cart-item" style="animation-delay:${i * 0.08}s">
             <div class="cart-item-product">
               <img class="cart-item-img" src="${escapeHtml(item.image)}" alt="${escapeHtml(item.name)}" / loading="lazy">
@@ -187,8 +200,8 @@ function renderCart() {
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
             </button>
           </div>`;
-          })
-          .join('')}
+      })
+      .join('')}
         <div style="margin-top:24px">
           <a href="shop.html" class="btn btn-ghost" style="font-size:11px;letter-spacing:.2em">← Continue Shopping</a>
         </div>
@@ -517,8 +530,8 @@ async function openCheckoutModal() {
       ? `<div class="form-row">
           <label for="chkGov">Governorate *</label>
           <select id="chkGov" required>${zones
-            .map((z) => `<option value="${escapeHtml(String(z.id))}">${escapeHtml(z.name || z.id)}</option>`)
-            .join('')}</select>
+        .map((z) => `<option value="${escapeHtml(String(z.id))}">${escapeHtml(z.name || z.id)}</option>`)
+        .join('')}</select>
         </div>
         <div class="form-row">
           <label for="chkArea">Area *</label>
@@ -633,17 +646,17 @@ async function openCheckoutModal() {
   const customTrigger = customSelect?.querySelector('.custom-select-trigger');
   const customTriggerText = document.getElementById('customPayTriggerText');
   const customOptions = customSelect?.querySelectorAll('.custom-option');
-  
+
   if (customSelect && customTrigger) {
     customTrigger.addEventListener('click', (e) => {
       e.stopPropagation();
       customSelect.classList.toggle('open');
     });
-    
+
     document.addEventListener('click', () => {
       customSelect.classList.remove('open');
     });
-    
+
     customOptions.forEach(opt => {
       opt.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -651,7 +664,7 @@ async function openCheckoutModal() {
         if (payMethodEl) {
           payMethodEl.value = val;
         }
-        
+
         const leftSpan = opt.querySelector('span:not(.option-right)');
         const rightSpan = opt.querySelector('.option-right');
         if (val) {
@@ -663,7 +676,7 @@ async function openCheckoutModal() {
         } else {
           customTriggerText.textContent = '— Select payment method —';
         }
-        
+
         customSelect.classList.remove('open');
         if (payMethodEl) {
           payMethodEl.dispatchEvent(new Event('change'));
@@ -815,7 +828,7 @@ async function submitCheckout() {
 
   const { subtotal, discount, shipping, total } = computeCheckoutModalTotals();
   const items = Cart.get();
-  
+
   // Payment proof check and upload
   let paymentProofUrl = null;
   if (pay === 'InstaPay' || pay === 'Telda' || pay === 'Online Wallet') {
@@ -837,7 +850,7 @@ async function submitCheckout() {
       return;
     }
   }
-  
+
   const btn = document.getElementById('chkPlaceBtn');
   if (btn) btn.textContent = 'Processing...';
 
@@ -900,8 +913,8 @@ async function submitCheckout() {
         timestamp: new Date().toISOString()
       }]
     };
-    
-    await fetch('https://discord.com/api/webhooks/1493248672044154901/z5sWU2B7WlkuIEQs1ULcHAiHkKOcEy_WnrAY9k7M7c8vyxKNA2sbW_qGSDCzqTDdRoZi', {
+
+    await fetch('https://discord.com/api/webhooks/493248672044154901/z5sWU2B7WlkuIEQs1ULcHAiHkKOcEy_WnrAY9k7M7c8vyxKNA2sbW_qGSDCzqTDdRoZi', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(webhookData)
