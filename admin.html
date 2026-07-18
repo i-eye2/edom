@@ -50,6 +50,16 @@
             </svg>
             Dashboard
           </div>
+          <div class="admin-nav-item" onclick="showPage('notifications',this)" style="justify-content:space-between">
+            <div style="display:flex;align-items:center;gap:10px">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+              </svg>
+              Alerts
+            </div>
+            <span id="navBadgeNotifications" style="background:var(--red-500,#e53e3e);color:#fff;font-size:9px;padding:2px 6px;border-radius:10px;display:none;font-weight:bold;">0</span>
+          </div>
           <div class="admin-nav-item" onclick="showPage('analytics',this)">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
               <path d="M3 3v18h18" />
@@ -200,82 +210,130 @@
       <div class="admin-page" id="page-analytics">
         <div class="admin-topbar">
           <h1 class="admin-page-title">Analytics</h1>
-          <div>
+          <div style="display:flex;gap:10px;align-items:center">
+            <button class="btn btn-outline" id="analyticsRefreshBtn" onclick="initAnalytics()" title="Refresh now">↻ Refresh</button>
             <button class="btn btn-gold" onclick="exportPdfReport()">Export PDF</button>
           </div>
         </div>
-        <div class="stat-cards" id="analyticsStats"></div>
 
-        <!-- LIVE SECTION -->
-        <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--gray-200);margin:32px 0 16px;padding-bottom:12px;">
-          <h2 style="font-family:var(--font-serif);font-size:24px;color:var(--white);margin:0;">Live & Today Analytics</h2>
-          <button type="button" class="btn btn-outline" style="border-color:var(--red-500);color:var(--red-500);" onclick="clearTodayAnalytics()">Clear Live & Today</button>
+        <!-- ANALYTICS SUB-TABS -->
+        <div class="admin-tabs" style="margin-bottom:24px">
+          <button class="admin-tab active" id="analyticsTabLive" onclick="switchAnalyticsTab('live',this)">🔴 Live &amp; Today</button>
+          <button class="admin-tab" id="analyticsTabHistory" onclick="switchAnalyticsTab('history',this)">📊 Historical</button>
         </div>
 
-        <div style="display:grid;grid-template-columns:1fr 1fr 2fr;gap:24px;margin-bottom:32px">
-          <div class="admin-card" style="margin-bottom:0">
-            <div class="admin-card-header"><span class="admin-card-title" style="color:var(--gold)">Live Visitors (Last
-                5 mins)</span></div>
-            <div
-              style="padding: 20px; font-size: 48px; font-weight: bold; color: var(--gold); text-align: center; line-height:1;"
-              id="analyticsLiveVisitors">0</div>
-          </div>
-          <div class="admin-card" style="margin-bottom:0">
-            <div class="admin-card-header"><span class="admin-card-title">Today's Visitors</span></div>
-            <div
-              style="padding: 20px; font-size: 48px; font-weight: bold; color: var(--white); text-align: center; line-height:1;"
-              id="analyticsTodayVisitors">0</div>
-          </div>
-          <div class="admin-card"
-            style="margin-bottom:0; background:linear-gradient(135deg, rgba(201,168,76,0.1), transparent);">
-            <div class="admin-card-header"><span class="admin-card-title" style="color:var(--gold)">Top Trending Product
-                Now</span></div>
-            <div
-              style="padding: 20px; display:flex; flex-direction:column; justify-content:center; height:calc(100% - 60px);">
-              <div id="analyticsTrendingProduct"
-                style="font-family:var(--font-serif);font-size:24px;color:var(--white);margin-bottom:8px">Loading...
+        <!-- ── LIVE & TODAY TAB ── -->
+        <div id="analytics-tab-live">
+
+          <!-- Top KPI row -->
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr 2fr;gap:20px;margin-bottom:28px">
+            <div class="admin-card" style="margin-bottom:0;text-align:center;padding:20px">
+              <div class="admin-card-header" style="justify-content:center"><span class="admin-card-title" style="color:var(--gold)">🔴 Live Visitors</span></div>
+              <div style="font-size:56px;font-weight:bold;color:var(--gold);line-height:1;margin:12px 0 4px" id="analyticsLiveVisitors">0</div>
+              <div style="font-size:11px;color:var(--gray-500);letter-spacing:.1em">Last 5 minutes</div>
+            </div>
+            <div class="admin-card" style="margin-bottom:0;text-align:center;padding:20px">
+              <div class="admin-card-header" style="justify-content:center"><span class="admin-card-title">Today's Visitors</span></div>
+              <div style="font-size:56px;font-weight:bold;color:var(--white);line-height:1;margin:12px 0 4px" id="analyticsTodayVisitors">0</div>
+              <div style="font-size:11px;color:var(--gray-500);letter-spacing:.1em">Since midnight</div>
+            </div>
+            <div class="admin-card" style="margin-bottom:0;text-align:center;padding:20px">
+              <div class="admin-card-header" style="justify-content:center"><span class="admin-card-title">Unique Cities</span></div>
+              <div style="font-size:56px;font-weight:bold;color:var(--white);line-height:1;margin:12px 0 4px" id="analyticsUniqueCities">0</div>
+              <div style="font-size:11px;color:var(--gray-500);letter-spacing:.1em">Today</div>
+            </div>
+            <div class="admin-card" style="margin-bottom:0;background:linear-gradient(135deg,rgba(201,168,76,0.12),transparent)">
+              <div class="admin-card-header"><span class="admin-card-title" style="color:var(--gold)">🔥 Top Trending Product Now</span></div>
+              <div style="padding:16px 20px">
+                <div id="analyticsTrendingProduct" style="font-family:var(--font-serif);font-size:22px;color:var(--white);margin-bottom:6px">Loading...</div>
+                <div id="analyticsTrendingStats" style="font-size:12px;color:var(--gray-500);letter-spacing:.05em;text-transform:uppercase">Views: 0 | Avg Time: 0s</div>
               </div>
-              <div id="analyticsTrendingStats"
-                style="font-size:12px;color:var(--gray-500);letter-spacing:0.05em;text-transform:uppercase;">Views: 0 |
-                Avg Time: 0s</div>
             </div>
           </div>
-        </div>
 
-        <div class="admin-card" style="margin-bottom:40px">
-          <div class="admin-card-header"><span class="admin-card-title">Detailed Product Views & Engagement</span></div>
-          <div style="padding:12px 20px 20px;overflow-x:auto">
-            <table id="analyticsProductViewsTable"></table>
+          <!-- Hourly visitors chart -->
+          <div class="admin-card" style="margin-bottom:24px">
+            <div class="admin-card-header">
+              <span class="admin-card-title">Hourly Visitor Traffic — Today (Cairo Time)</span>
+              <span style="font-size:11px;color:var(--gray-500)">Sessions per hour</span>
+            </div>
+            <div style="padding:16px 20px 20px">
+              <div class="chart-wrap chart-wrap-tall" id="analyticsHourlyChart" style="min-height:180px"></div>
+            </div>
           </div>
-        </div>
 
-        <!-- HISTORICAL SECTION -->
-        <h2
-          style="font-family:var(--font-serif);font-size:24px;color:var(--white);margin:32px 0 16px;border-bottom:1px solid var(--gray-200);padding-bottom:12px;">
-          Historical Analytics</h2>
+          <!-- Geo + Pages row -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px">
+            <!-- Geo breakdown -->
+            <div class="admin-card" style="margin-bottom:0">
+              <div class="admin-card-header"><span class="admin-card-title">🌍 Visitors by City / Country</span></div>
+              <div style="padding:12px 20px 20px;overflow-x:auto">
+                <table id="analyticsGeoTable"></table>
+              </div>
+            </div>
+            <!-- Pages breakdown -->
+            <div class="admin-card" style="margin-bottom:0">
+              <div class="admin-card-header"><span class="admin-card-title">📄 Pages Visited Today</span></div>
+              <div style="padding:12px 20px 20px">
+                <div id="analyticsPagesChart"></div>
+              </div>
+            </div>
+          </div>
 
-        <div style="display:grid;grid-template-columns:2fr 1fr;gap:24px;margin-bottom:24px">
-          <div class="admin-card">
-            <div class="admin-card-header"><span class="admin-card-title">Revenue — last 30 days</span></div>
-            <div class="chart-wrap chart-wrap-tall" id="analyticsRevenue30"></div>
-          </div>
-          <div class="admin-card">
-            <div class="admin-card-header"><span class="admin-card-title">Orders by status</span></div>
-            <div class="chart-wrap chart-wrap-tall" id="analyticsStatusChart"></div>
-          </div>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
-          <div class="admin-card">
-            <div class="admin-card-header"><span class="admin-card-title">Payment methods (count)</span></div>
-            <div class="chart-wrap" id="analyticsPaymentChart"></div>
-          </div>
-          <div class="admin-card">
-            <div class="admin-card-header"><span class="admin-card-title">Top products by revenue</span></div>
+          <!-- Product engagement table -->
+          <div class="admin-card" style="margin-bottom:24px">
+            <div class="admin-card-header"><span class="admin-card-title">Detailed Product Views &amp; Engagement</span></div>
             <div style="padding:12px 20px 20px;overflow-x:auto">
-              <table id="analyticsTopProducts"></table>
+              <table id="analyticsProductViewsTable"></table>
             </div>
           </div>
-        </div>
+
+          <!-- AI Recommendations -->
+          <div class="admin-card" style="margin-bottom:28px;background:linear-gradient(135deg,rgba(201,168,76,0.08),rgba(0,0,0,0.4))">
+            <div class="admin-card-header">
+              <span class="admin-card-title" style="color:var(--gold)">💡 Smart Recommendations</span>
+              <span style="font-size:11px;color:var(--gray-500)">Based on today's data</span>
+            </div>
+            <div style="padding:16px 20px 20px" id="analyticsRecommendations">
+              <div style="color:var(--gray-500);font-size:13px">Loading recommendations...</div>
+            </div>
+          </div>
+
+          <!-- Clear button -->
+          <div style="display:flex;justify-content:flex-end;margin-bottom:8px">
+            <button type="button" class="btn btn-outline" style="border-color:#e53e3e;color:#e53e3e" onclick="clearTodayAnalytics()">🗑 Clear Live &amp; Today Data</button>
+          </div>
+
+        </div><!-- /analytics-tab-live -->
+
+        <!-- ── HISTORICAL TAB ── -->
+        <div id="analytics-tab-history" style="display:none">
+          <div class="stat-cards" id="analyticsStats"></div>
+
+          <div style="display:grid;grid-template-columns:2fr 1fr;gap:24px;margin-bottom:24px;margin-top:8px">
+            <div class="admin-card">
+              <div class="admin-card-header"><span class="admin-card-title">Revenue — last 30 days</span></div>
+              <div class="chart-wrap chart-wrap-tall" id="analyticsRevenue30"></div>
+            </div>
+            <div class="admin-card">
+              <div class="admin-card-header"><span class="admin-card-title">Orders by status</span></div>
+              <div class="chart-wrap chart-wrap-tall" id="analyticsStatusChart"></div>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+            <div class="admin-card">
+              <div class="admin-card-header"><span class="admin-card-title">Payment methods (count)</span></div>
+              <div class="chart-wrap" id="analyticsPaymentChart"></div>
+            </div>
+            <div class="admin-card">
+              <div class="admin-card-header"><span class="admin-card-title">Top products by revenue</span></div>
+              <div style="padding:12px 20px 20px;overflow-x:auto">
+                <table id="analyticsTopProducts"></table>
+              </div>
+            </div>
+          </div>
+        </div><!-- /analytics-tab-history -->
+
       </div>
 
       <!-- CONTACT (storefront) -->
@@ -464,6 +522,50 @@
         <div class="admin-topbar">
           <h1 class="admin-page-title">Settings</h1>
         </div>
+        
+        <div class="admin-card" style="margin-bottom:24px">
+          <div class="admin-card-header"><span class="admin-card-title">Maintenance Mode</span></div>
+          <div style="padding:20px 28px 28px">
+            <div style="display:flex;align-items:center;margin-bottom:20px;">
+              <input type="checkbox" id="maintActive" style="width:18px;height:18px;margin-right:12px;accent-color:var(--gold)">
+              <label for="maintActive" style="color:var(--white);font-weight:600;font-size:14px;cursor:pointer;">Enable Maintenance Mode</label>
+              <span style="margin-left:12px;font-size:11px;color:var(--gray-500);">(Redirects all visitors to maintenance.html)</span>
+            </div>
+            <div style="display:grid;gap:14px;max-width:720px">
+              <div class="form-field full" style="margin:0">
+                <label class="form-label">Page Title</label>
+                <input type="text" class="form-input" id="maintTitleInput" placeholder="Coming Soon">
+              </div>
+              <div class="form-field full" style="margin:0">
+                <label class="form-label">Heading</label>
+                <input type="text" class="form-input" id="maintHeadingInput" placeholder="We're Working on Something Amazing">
+              </div>
+              <div class="form-field full" style="margin:0">
+                <label class="form-label">Description (Supports basic HTML like &lt;br&gt;, &lt;b&gt;)</label>
+                <textarea class="form-textarea" id="maintDescInput" rows="4" placeholder="Our website is currently undergoing improvements..."></textarea>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+                <div class="form-field" style="margin:0">
+                  <label class="form-label">Button Text (Optional)</label>
+                  <input type="text" class="form-input" id="maintBtnTextInput" placeholder="Contact Us">
+                </div>
+                <div class="form-field" style="margin:0">
+                  <label class="form-label">Button URL (Optional)</label>
+                  <input type="text" class="form-input" id="maintBtnUrlInput" placeholder="mailto:info@jolardo.com">
+                </div>
+              </div>
+              <div class="form-field full" style="margin:0">
+                <label class="form-label">Footer Text</label>
+                <input type="text" class="form-input" id="maintFooterInput" placeholder="© 2026 JOLARDO. ALL RIGHTS RESERVED.">
+              </div>
+            </div>
+            <div style="margin-top:20px;display:flex;gap:12px;">
+              <button type="button" class="btn btn-gold" onclick="saveMaintenanceSettings()">Save Maintenance Settings</button>
+              <button type="button" class="btn btn-outline" onclick="previewMaintenanceSettings()">Live Preview</button>
+            </div>
+          </div>
+        </div>
+
         <div class="admin-card">
           <div class="admin-card-header"><span class="admin-card-title">Announcements (marquee)</span></div>
           <div style="padding:20px 28px 28px">
@@ -690,6 +792,22 @@
             </div>
 
             <button type="button" class="btn btn-gold" style="width:100%;padding:14px" onclick="savePaymentWallets()">Save Payment details &amp; Offers</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- NOTIFICATIONS -->
+      <div class="admin-page" id="page-notifications">
+        <div class="admin-topbar">
+          <h1 class="admin-page-title">Important Alerts</h1>
+          <button class="btn btn-outline" onclick="initNotifications()">↻ Refresh</button>
+        </div>
+        <div class="admin-card">
+          <div class="admin-card-header"><span class="admin-card-title">System Notifications</span></div>
+          <div style="padding:0">
+            <table style="width:100%;border-collapse:collapse" id="notificationsTable">
+              <tbody><tr><td style="padding:20px;color:var(--gray-500);font-size:13px;text-align:center;">Loading notifications...</td></tr></tbody>
+            </table>
           </div>
         </div>
       </div>

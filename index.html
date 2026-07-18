@@ -1,82 +1,197 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>𝐄𝐘𝐄ᵀᴹ</title>
-<link rel="icon" type="image/png" href="pics/1.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preconnect" href="https://vwnmifpspxnxlzntnckv.supabase.co">
-<link rel="stylesheet" href="css/shared.css" />
-<link rel="stylesheet" href="css/index.css" />
-<link rel="stylesheet" href="css/feedback.css" />
+  <!-- MAINTENANCE CHECK: runs before anything else -->
+  <script>
+    (async function () {
+      const SUPABASE_URL = "https://fuxqnwlxorojmpvcpxop.supabase.co";
+      const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ1eHFud2x4b3Jvam1wdmNweG9wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwMjAzMzgsImV4cCI6MjA5MTU5NjMzOH0.FFbbSp_JuLgNeimlPkZ2OJ-v2bRhZgZgkTyeJgk4QOc";
+      try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/site_settings?key=eq.maintenance&select=value`, {
+          headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
+        });
+        const data = await res.json();
+        if (data && data[0]) {
+          const m = JSON.parse(data[0].value);
+          if (m && m.active === true) {
+            window.location.replace('maintenance.html');
+          }
+        }
+      } catch (e) { }
+    })();
+  </script>
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Primary SEO -->
+  <title>EYE-EG </title>
+  <meta name="description" content="EYE-EG is Egypt's premium streetwear and clothing brand. Shop oversized t-shirts, hoodies, and luxury fashion apparel. Discover the latest EyeEG collections online." />
+  <meta name="keywords" content="Eye-EG, Eye EG, EyeEG, Eye Egypt, Streetwear Egypt, Premium Clothing Egypt, Hoodies Egypt, Oversized T-Shirts, Egyptian Fashion, Clothing Store Cairo, Luxury Fashion" />
+  <link rel="canonical" href="https://eye-eg.store/" />
+
+  <!-- Robots -->
+  <meta name="robots" content="index, follow" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="EYE-EG" />
+  <meta property="og:url" content="https://eye-eg.store/" />
+  <meta property="og:title" content="EYE-EG | Premium Streetwear &amp; Clothing Brand — Egypt" />
+  <meta property="og:description" content="EYE-EG is Egypt's premium streetwear and clothing brand. Shop oversized t-shirts, hoodies, and luxury fashion apparel. Discover the latest EyeEG collections online." />
+  <meta property="og:image" content="https://eye-eg.store/pics/1.png" />
+  <meta property="og:locale" content="en_US" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:site" content="@eyeeg" />
+  <meta name="twitter:url" content="https://eye-eg.store/" />
+  <meta name="twitter:title" content="EYE-EG | Premium Streetwear &amp; Clothing Brand — Egypt" />
+  <meta name="twitter:description" content="EYE-EG is Egypt's premium streetwear and clothing brand. Shop oversized t-shirts, hoodies, and luxury fashion apparel." />
+  <meta name="twitter:image" content="https://eye-eg.store/pics/1.png" />
+
+  <link rel="icon" type="image/png" href="pics/1.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://fuxqnwlxorojmpvcpxop.supabase.co">
+  <link rel="dns-prefetch" href="https://ip-api.com">
+  <link rel="dns-prefetch" href="https://esm.sh">
+  <!-- Google Fonts — non-blocking, display=swap prevents FOIT -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&display=swap" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&display=swap"></noscript>
+  <link rel="stylesheet" href="css/shared.css" />
+  <link rel="stylesheet" href="css/index.css" />
+  <link rel="stylesheet" href="css/feedback.css" />
+
+  <!-- Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://eye-eg.store/#organization",
+        "name": "EYE-EG",
+        "alternateName": ["Eye EG", "EyeEG", "Eye Egypt"],
+        "url": "https://eye-eg.store/",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://eye-eg.store/pics/1.png",
+          "width": 512,
+          "height": 512
+        },
+        "description": "EYE-EG is Egypt's premium streetwear and clothing brand specializing in oversized t-shirts, hoodies, and luxury fashion apparel.",
+        "sameAs": []
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://eye-eg.store/#website",
+        "url": "https://eye-eg.store/",
+        "name": "EYE-EG",
+        "description": "Egypt's premium streetwear clothing brand.",
+        "publisher": {
+          "@id": "https://eye-eg.store/#organization"
+        },
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": {
+            "@type": "EntryPoint",
+            "urlTemplate": "https://eye-eg.store/shop.html?q={search_term_string}"
+          },
+          "query-input": "required name=search_term_string"
+        }
+      },
+      {
+        "@type": "WebPage",
+        "@id": "https://eye-eg.store/#webpage",
+        "url": "https://eye-eg.store/",
+        "name": "EYE-EG | Premium Streetwear & Clothing Brand — Egypt",
+        "isPartOf": { "@id": "https://eye-eg.store/#website" },
+        "about": { "@id": "https://eye-eg.store/#organization" },
+        "description": "Discover EYE-EG's latest premium streetwear collections including oversized t-shirts, hoodies, and exclusive Egyptian fashion drops.",
+        "breadcrumb": { "@id": "https://eye-eg.store/#breadcrumb" }
+      },
+      {
+        "@type": "BreadcrumbList",
+        "@id": "https://eye-eg.store/#breadcrumb",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "https://eye-eg.store/"
+          }
+        ]
+      }
+    ]
+  }
+  </script>
 </head>
+
 <body>
 
-<div id="pageLoader" class="page-loader">
-  <div class="loader-logo">eye</div>
-  <div class="loader-bar"></div>
-</div>
-
-<div id="navbar-container"></div>
-
-<section class="hero" id="homeHeroMount"></section>
-
-<section class="section" style="padding-bottom:0">
-  <div class="container">
-    <div class="section-header" id="categorySectionHeader"></div>
+  <div id="pageLoader" class="page-loader">
+    <div class="loader-logo">eye</div>
+    <div class="loader-bar"></div>
   </div>
-  <div class="category-grid" id="categoryGridMount"></div>
-</section>
 
-<section class="section">
-  <div class="container">
-    <div class="section-header" id="featuredSectionHeader"></div>
-    <div class="products-grid" id="featuredGrid"></div>
-    <div style="text-align:center;margin-top:56px" id="featuredCtaWrap"></div>
-  </div>
-</section>
+  <div id="navbar-container"></div>
 
-<section class="section feedback-section">
-  <div class="container">
-    <p class="section-label">What Our Customers Say</p>
-    <h2 class="section-title">Customer <em>Voices</em></h2>
-    <div class="feedback-slider-wrap">
-      <div class="feedback-slider" id="feedbackSlider"></div>
+  <section class="hero" id="homeHeroMount"></section>
+
+  <section class="section" style="padding-bottom:0">
+    <div class="container">
+      <div class="section-header" id="categorySectionHeader"></div>
     </div>
-    <div class="feedback-dots" id="feedbackDots"></div>
-    <div class="feedback-cta-wrap">
-      <a href="feedbacks.html" class="btn btn-outline" style="font-size:11px;letter-spacing:.2em">Leave a Review</a>
+    <div class="category-grid" id="categoryGridMount"></div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-header" id="featuredSectionHeader"></div>
+      <div class="products-grid" id="featuredGrid"></div>
+      <div style="text-align:center;margin-top:56px" id="featuredCtaWrap"></div>
+    </div>
+  </section>
+
+  <section class="section feedback-section">
+    <div class="container">
+      <p class="section-label">What Our Customers Say</p>
+      <h2 class="section-title">Customer <em>Voices</em></h2>
+      <div class="feedback-slider-wrap">
+        <div class="feedback-slider" id="feedbackSlider"></div>
+      </div>
+      <div class="feedback-dots" id="feedbackDots"></div>
+      <div class="feedback-cta-wrap">
+        <a href="feedbacks.html" class="btn btn-outline" style="font-size:11px;letter-spacing:.2em">Leave a Review</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" style="background:var(--gray-50)">
+    <div class="container">
+      <div class="split-section" id="splitSectionMount"></div>
+    </div>
+  </section>
+
+  <div class="newsletter-section" id="newsletterSectionMount"></div>
+
+  <div id="footer-container"></div>
+  <div class="toast" id="toast"></div>
+
+  <!-- MOBILE SIDEBAR -->
+  <div class="mobile-sidebar" id="mobileSidebar">
+    <div class="sidebar-logo-wrap">
+      <div class="sidebar-logo">{ 𝐄𝐘𝐄ᵀᴹ }</div>
     </div>
   </div>
-</section>
 
-<section class="section" style="background:var(--gray-50)">
-  <div class="container">
-    <div class="split-section" id="splitSectionMount"></div>
-  </div>
-</section>
-
-
-
-
-<div class="newsletter-section" id="newsletterSectionMount"></div>
-
-<div id="footer-container"></div>
-<div class="toast" id="toast"></div>
-
-<!-- MOBILE SIDEBAR -->
-<div class="mobile-sidebar" id="mobileSidebar">
-  <div class="sidebar-logo-wrap">
-    <div class="sidebar-logo">{ 𝐄𝐘𝐄ᵀᴹ }</div>
-  </div>
-</div>
-
-<script src="js/config.js"></script>
-<script src="js/api.js"></script>
-<script src="js/analytics.js"></script>
-<script src="js/shared.js"></script>
-<script src="js/index.js"></script>
+  <script src="js/config.js" defer></script>
+  <script src="js/api.js" defer></script>
+  <script src="js/analytics.js" defer></script>
+  <script src="js/shared.js" defer></script>
+  <script src="js/index.js" defer></script>
 </body>
+
 </html>

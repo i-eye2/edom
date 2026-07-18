@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- MAINTENANCE CHECK -->
+<script>
+(async function(){
+  try {
+    const res = await fetch("https://fuxqnwlxorojmpvcpxop.supabase.co/rest/v1/site_settings?key=eq.maintenance&select=value", {
+      headers: { 'apikey': "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ1eHFud2x4b3Jvam1wdmNweG9wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwMjAzMzgsImV4cCI6MjA5MTU5NjMzOH0.FFbbSp_JuLgNeimlPkZ2OJ-v2bRhZgZgkTyeJgk4QOc", 'Authorization': "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ1eHFud2x4b3Jvam1wdmNweG9wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwMjAzMzgsImV4cCI6MjA5MTU5NjMzOH0.FFbbSp_JuLgNeimlPkZ2OJ-v2bRhZgZgkTyeJgk4QOc" }
+    });
+    const data = await res.json();
+    if (data && data[0]) { const m = JSON.parse(data[0].value); if (m && m.active === true) { window.location.replace('maintenance.html'); } }
+  } catch(e) {}
+})();
+</script>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Page Not Found | EYE-EG — Luxury Clothing Store</title>
+<meta name="description" content="The page you are looking for does not exist. Return to EYE-EG (Eye Egypt) home page to discover our premium clothing collection." />
+<meta name="robots" content="noindex, follow" />
+
+<!-- Preconnect for faster font loading -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://fuxqnwlxorojmpvcpxop.supabase.co">
+
+<link rel="icon" type="image/png" href="pics/1.png">
+<link rel="stylesheet" href="css/shared.css" />
+<style>
+  .error-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 70vh;
+    text-align: center;
+    padding: 48px 24px;
+  }
+  .error-code {
+    font-family: var(--font-serif);
+    font-size: clamp(80px, 12vw, 160px);
+    font-weight: 300;
+    color: var(--white);
+    line-height: 1;
+    margin-bottom: 24px;
+    letter-spacing: -0.05em;
+  }
+  .error-title {
+    font-family: var(--font-serif);
+    font-size: 24px;
+    font-weight: 300;
+    margin-bottom: 16px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .error-desc {
+    font-size: 14px;
+    color: var(--gray-500);
+    max-width: 440px;
+    margin-bottom: 40px;
+    line-height: 1.6;
+  }
+</style>
+</head>
+<body>
+<div id="pageLoader" class="page-loader"><div class="loader-logo">eye</div><div class="loader-bar"></div></div>
+<div id="navbar-container"></div>
+
+<main class="error-page container">
+  <div class="error-code">404</div>
+  <h1 class="error-title">Lost in Silence</h1>
+  <p class="error-desc">The page you are looking for has been moved, removed, or never existed in the first place.</p>
+  <a href="index.html" class="btn btn-primary">Return to Homepage</a>
+</main>
+
+<div id="footer-container"></div>
+<div class="toast" id="toast"></div>
+<script src="js/config.js" defer></script>
+<script src="js/api.js" defer></script>
+<script src="js/analytics.js" defer></script>
+<script src="js/shared.js" defer></script>
+<!-- FIXED: initLoader() must run after deferred scripts execute, not immediately -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    if (typeof initLoader === 'function') initLoader();
+  });
+</script>
+</body>
+</html>

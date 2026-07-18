@@ -1,0 +1,29 @@
+User-agent: *
+Allow: /
+Allow: /index.html
+Allow: /shop.html
+Allow: /contact.html
+Allow: /feedbacks.html
+Allow: /product.html
+Allow: /Return and Exchange Policy.html
+
+# Private/account pages - allow crawling but discourage indexing
+Allow: /login.html
+Allow: /register.html
+
+# Do not index admin or system pages
+Disallow: /admin.html
+Disallow: /admin-order.html
+Disallow: /maintenance.html
+
+# Do not index user account pages
+Disallow: /cart.html
+Disallow: /profile.html
+Disallow: /orders.html
+
+# Static asset directories - no need to crawl
+Disallow: /js/
+Disallow: /css/
+Disallow: /supabase/
+
+Sitemap: https://eye-eg.store/sitemap.xml

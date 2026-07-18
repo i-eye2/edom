@@ -3,6 +3,7 @@
   margin: 0 auto;
   padding: calc(var(--nav-h) + 48px) 48px 100px;
 }
+
 body.has-marquee .contact-page {
   padding-top: calc(var(--nav-h) + 36px + 48px);
 }
@@ -14,6 +15,7 @@ body.has-marquee .contact-page {
   margin-left: auto;
   margin-right: auto;
 }
+
 .contact-pre {
   font-size: 10px;
   letter-spacing: 0.35em;
@@ -21,6 +23,7 @@ body.has-marquee .contact-page {
   color: var(--gray-500);
   margin-bottom: 16px;
 }
+
 .contact-title {
   font-family: var(--font-serif);
   font-size: clamp(40px, 6vw, 64px);
@@ -30,10 +33,12 @@ body.has-marquee .contact-page {
   margin-bottom: 20px;
   color: var(--white);
 }
+
 .contact-title em {
   font-style: italic;
   display: inline;
 }
+
 .contact-lead {
   font-size: 15px;
   line-height: 1.75;
@@ -53,6 +58,7 @@ body.has-marquee .contact-page {
   background: var(--gray-100);
   padding: 32px 36px 36px;
 }
+
 .contact-panel-title {
   font-family: var(--font-serif);
   font-size: 22px;
@@ -66,12 +72,14 @@ body.has-marquee .contact-page {
   flex-direction: column;
   gap: 18px;
 }
+
 .contact-chat-preview {
   display: flex;
   flex-direction: column;
   gap: 8px;
   margin-bottom: 18px;
 }
+
 .contact-bubble {
   max-width: 82%;
   padding: 10px 14px;
@@ -79,18 +87,21 @@ body.has-marquee .contact-page {
   font-size: 12px;
   line-height: 1.45;
 }
+
 .contact-bubble-in {
   align-self: flex-start;
   background: var(--gray-200);
   color: var(--gray-700);
   border-bottom-left-radius: 4px;
 }
+
 .contact-bubble-out {
   align-self: flex-end;
   background: var(--white);
   color: var(--black);
   border-bottom-right-radius: 4px;
 }
+
 .contact-field {
   display: flex;
   flex-direction: column;
@@ -100,6 +111,7 @@ body.has-marquee .contact-page {
   text-transform: uppercase;
   color: var(--gray-500);
 }
+
 .contact-field input,
 .contact-field textarea {
   padding: 14px 16px;
@@ -114,9 +126,11 @@ body.has-marquee .contact-page {
   resize: vertical;
   min-height: 48px;
 }
+
 .contact-field textarea {
   min-height: 140px;
 }
+
 .contact-field input:focus,
 .contact-field textarea:focus {
   border-color: var(--gray-300);
@@ -127,11 +141,13 @@ body.has-marquee .contact-page {
   flex-direction: column;
   gap: 16px;
 }
+
 .contact-card {
   border: 1px solid var(--gray-200);
   padding: 20px 22px;
   background: transparent;
 }
+
 .contact-card-label {
   display: block;
   font-size: 10px;
@@ -140,6 +156,7 @@ body.has-marquee .contact-page {
   color: var(--gray-500);
   margin-bottom: 8px;
 }
+
 .contact-card-value {
   font-size: 15px;
   font-weight: 300;
@@ -147,9 +164,11 @@ body.has-marquee .contact-page {
   text-decoration: none;
   word-break: break-word;
 }
+
 .contact-card-value:hover {
   color: var(--gray-300);
 }
+
 .contact-card-text {
   margin: 0;
   font-size: 14px;
@@ -157,11 +176,13 @@ body.has-marquee .contact-page {
   color: var(--gray-700);
   font-weight: 300;
 }
+
 .contact-empty-note {
   font-size: 13px;
   color: var(--gray-500);
   line-height: 1.6;
 }
+
 .contact-wa-quick {
   display: inline-flex;
   margin-top: 14px;
@@ -175,6 +196,7 @@ body.has-marquee .contact-page {
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
+
 .contact-wa-quick:hover {
   background: #1faa59;
   color: #041108;
@@ -184,6 +206,7 @@ body.has-marquee .contact-page {
   .contact-grid {
     grid-template-columns: 1fr;
   }
+
   .contact-page {
     padding-left: 20px;
     padding-right: 20px;

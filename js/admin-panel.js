@@ -31,6 +31,7 @@ function showPage(name, el) {
   if (name === 'settings' || name === 'payments') initSettings();
   if (name === 'feedback') renderFeedbackAdminTable();
   if (name === 'logs') renderLogsTable();
+  if (name === 'notifications') initNotifications();
 }
 
 function statusBadge(s) {
@@ -1120,19 +1121,247 @@ function topSellingByRevenue(orders, limit) {
     .slice(0, limit);
 }
 
+
+/* -- Analytics Tab Switcher -------------------------------- */
+let _activeAnalyticsTab = 'live';
+
+function switchAnalyticsTab(tab, el) {
+  _activeAnalyticsTab = tab;
+  document.querySelectorAll('#page-analytics .admin-tab').forEach(b => b.classList.remove('active'));
+  if (el) el.classList.add('active');
+  document.getElementById('analytics-tab-live').style.display    = (tab === 'live')    ? '' : 'none';
+  document.getElementById('analytics-tab-history').style.display = (tab === 'history') ? '' : 'none';
+  initAnalytics();
+}
+
+/* -- Hourly Bar Chart -------------------------------------- */
+function renderHourlyChart(hourlyStats, containerId) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  const maxSessions = Math.max(1, ...hourlyStats.map(h => h.sessions));
+  const now = new Date();
+  const currentHour = (now.getUTCHours() + 3) % 24; // Cairo UTC+3
+
+  el.innerHTML = `<div class="chart-bars chart-bars-wide" style="gap:3px">${hourlyStats.map(h => {
+    const pct = (h.sessions / maxSessions) * 100;
+    const isCurrent = h.hour === currentHour;
+    const barColor = isCurrent
+      ? 'linear-gradient(180deg,var(--gold),#6a5a32)'
+      : h.sessions > 0 ? 'linear-gradient(180deg,rgba(201,168,76,0.7),rgba(106,90,50,0.4))' : 'rgba(255,255,255,0.05)';
+    return `<div class="chart-bar-wrap" title="${h.label}: ${h.sessions} sessions">
+      <div class="chart-bar-val" style="font-size:9px">${h.sessions > 0 ? h.sessions : ''}</div>
+      <div class="chart-bar" style="height:${Math.max(pct, h.sessions > 0 ? 4 : 1)}%;background:${barColor};${isCurrent ? 'box-shadow:0 0 8px rgba(201,168,76,0.5)' : ''}"></div>
+      <div class="chart-bar-label" style="font-size:8px">${h.hour % 6 === 0 ? h.label : ''}</div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+/* -- Geo Table --------------------------------------------- */
+function renderGeoTable(geoStats) {
+  const el = document.getElementById('analyticsGeoTable');
+  if (!el) return;
+  if (!geoStats || !geoStats.length) {
+    el.innerHTML = '<tbody><tr><td colspan="4" style="color:var(--gray-500);padding:20px;font-size:13px">No geo data yet. New visitors will generate location data automatically.</td></tr></tbody>';
+    return;
+  }
+  const maxSessions = Math.max(1, ...geoStats.map(g => g.sessions));
+  el.innerHTML = `<thead><tr><th>Flag</th><th>City</th><th>Country</th><th>Sessions</th></tr></thead><tbody>${
+    geoStats.map(g => {
+      const barPct = Math.round((g.sessions / maxSessions) * 100);
+      let flag = '\u{1F310}';
+      try {
+        if (g.country_code && g.country_code.length === 2) {
+          flag = String.fromCodePoint(
+            0x1F1E0 + g.country_code.toUpperCase().charCodeAt(0) - 65,
+            0x1F1E0 + g.country_code.toUpperCase().charCodeAt(1) - 65
+          );
+        }
+      } catch(_) {}
+      return `<tr>
+        <td style="font-size:22px;text-align:center">${flag}</td>
+        <td style="color:var(--white);font-weight:500">${escapeHtml(g.city)}</td>
+        <td style="color:var(--gray-500);font-size:12px">${escapeHtml(g.country)}</td>
+        <td>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="flex:1;background:rgba(255,255,255,0.06);height:6px;border-radius:3px;overflow:hidden">
+              <div style="height:100%;width:${barPct}%;background:var(--gold);border-radius:3px"></div>
+            </div>
+            <span style="color:var(--white);font-size:13px;font-weight:600;min-width:24px">${g.sessions}</span>
+          </div>
+        </td>
+      </tr>`;
+    }).join('')
+  }</tbody>`;
+}
+
+/* -- Pages Horizontal Bar Chart --------------------------- */
+function renderPagesChart(pageStats) {
+  const el = document.getElementById('analyticsPagesChart');
+  if (!el) return;
+  if (!pageStats || !pageStats.length) {
+    el.innerHTML = '<p style="color:var(--gray-500);font-size:13px;padding:8px 0">No page views yet today.</p>';
+    return;
+  }
+  const pageLabels = {
+    '/': 'Home', '/index.html': 'Home', '/shop.html': 'Shop',
+    '/product.html': 'Product', '/cart.html': 'Cart', '/contact.html': 'Contact',
+    '/login.html': 'Login', '/register.html': 'Register', '/profile.html': 'Profile',
+    '/orders.html': 'Orders', '/feedbacks.html': 'Feedbacks', '/admin.html': 'Admin'
+  };
+  const maxSessions = Math.max(1, ...pageStats.map(p => p.sessions));
+  el.innerHTML = pageStats.map(p => {
+    const label = pageLabels[p.page] || p.page.replace(/\.html$/, '').replace(/^\//,'') || 'Unknown';
+    const pct = Math.round((p.sessions / maxSessions) * 100);
+    return `<div style="margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+        <span style="font-size:12px;color:var(--white)">${escapeHtml(label)}</span>
+        <span style="font-size:12px;color:var(--gold);font-weight:600">${p.sessions}</span>
+      </div>
+      <div style="background:rgba(255,255,255,0.06);height:8px;border-radius:4px;overflow:hidden">
+        <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,var(--gold),rgba(201,168,76,0.5));border-radius:4px"></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* -- Smart Recommendations -------------------------------- */
+function renderRecommendations(aData, orders30Count, revAll) {
+  const el = document.getElementById('analyticsRecommendations');
+  if (!el) return;
+
+  const recs = [];
+
+  // Live traffic
+  if (aData.liveVisitors > 5) {
+    recs.push({ icon: '\uD83D\uDD25', type: 'positive', text: `<strong>${aData.liveVisitors} visitors</strong> are on the site right now — great time to push a flash promo!` });
+  }
+  if (aData.todayVisitors > 50) {
+    recs.push({ icon: '\uD83D\uDCC8', type: 'positive', text: `Today has <strong>${aData.todayVisitors} visitors</strong>. Consider sending a newsletter if you haven't today.` });
+  } else if (aData.todayVisitors < 5 && new Date().getHours() > 10) {
+    recs.push({ icon: '\u26A0\uFE0F', type: 'warning', text: `Low traffic today (<strong>${aData.todayVisitors} visitors</strong>). Share a post on social media or run an ad.` });
+  }
+
+  // Peak hour
+  if (aData.hourlyStats && aData.hourlyStats.length) {
+    const peakHour = aData.hourlyStats.reduce((best, h) => h.sessions > best.sessions ? h : best, aData.hourlyStats[0]);
+    if (peakHour.sessions > 0) {
+      recs.push({ icon: '\u23F0', type: 'info', text: `Peak traffic hour today is <strong>${peakHour.label}</strong> (${peakHour.sessions} sessions). Schedule promotions around this time.` });
+    }
+  }
+
+  // Geo insights
+  if (aData.geoStats && aData.geoStats.length) {
+    const top3 = aData.geoStats.slice(0, 3);
+    const topCityText = top3.map(g => `${g.city} (${g.sessions})`).join(', ');
+    recs.push({ icon: '\uD83C\uDF0D', type: 'info', text: `Top cities today: <strong>${topCityText}</strong>. Ensure shipping and marketing covers these areas.` });
+    const totalSessions = aData.geoStats.reduce((s, g) => s + g.sessions, 0);
+    if (top3[0] && totalSessions > 0 && (top3[0].sessions / totalSessions) > 0.7) {
+      recs.push({ icon: '\uD83D\uDCCC', type: 'info', text: `<strong>${Math.round(top3[0].sessions/totalSessions*100)}%</strong> of visitors are from <strong>${top3[0].city}</strong>. Target other cities to diversify reach.` });
+    }
+  }
+
+  // Product insights
+  if (aData.productStats && aData.productStats.length) {
+    const topProd = aData.productStats[0];
+    recs.push({ icon: '\uD83D\uDC40', type: 'positive', text: `<strong>${escapeHtml(topProd.name || topProd.id)}</strong> is your most-viewed product (${topProd.views} views, ${topProd.avgDuration}s avg). Ensure it's in stock and featured.` });
+    const highIntent = aData.productStats.filter(p => p.avgDuration > 60);
+    if (highIntent.length) {
+      recs.push({ icon: '\uD83D\uDCB0', type: 'positive', text: `${highIntent.length} product(s) have >60s avg view time (high purchase intent). Consider a limited-time offer on: <strong>${escapeHtml(highIntent[0].name)}</strong>.` });
+    }
+  }
+
+  // No orders vs traffic
+  if (aData.todayVisitors > 10 && orders30Count < 1) {
+    recs.push({ icon: '\uD83D\uDEE0', type: 'warning', text: `You have visitors but <strong>no recent orders</strong>. Check your checkout flow, pricing, and payment methods.` });
+  }
+
+  if (!recs.length) {
+    recs.push({ icon: '\u2139\uFE0F', type: 'info', text: 'Not enough data yet. More visitors will unlock smart insights.' });
+  }
+
+  const typeColors   = { positive: 'rgba(72,187,120,0.1)', warning: 'rgba(245,158,11,0.1)', info: 'rgba(66,153,225,0.1)' };
+  const typeBorders  = { positive: '#48bb78', warning: '#f59e0b', info: '#4299e1' };
+
+  el.innerHTML = `<div style="display:flex;flex-direction:column;gap:12px">${
+    recs.map(r => `<div style="display:flex;align-items:flex-start;gap:12px;padding:14px 16px;background:${typeColors[r.type]};border-left:3px solid ${typeBorders[r.type]};border-radius:0 6px 6px 0">
+      <span style="font-size:20px;flex-shrink:0;margin-top:1px">${r.icon}</span>
+      <p style="margin:0;font-size:13px;color:var(--white);line-height:1.6">${r.text}</p>
+    </div>`).join('')
+  }</div>`;
+}
+
+/* -- Main Analytics Init ---------------------------------- */
 async function initAnalytics() {
   const orders = await EyeApi.fetchOrders();
   const now = new Date();
   const ms30 = 30 * 86400000;
-  const orders30 = orders.filter((o) => {
+  const orders30 = orders.filter(o => {
     const raw = o.date || o.created_at;
     if (!raw) return false;
     return now - new Date(raw) <= ms30;
   });
-  const rev30 = orders30.reduce((s, o) => s + (Number(o.total) || 0), 0);
-  const revAll = orders.reduce((s, o) => s + (Number(o.total) || 0), 0);
+  const rev30    = orders30.reduce((s, o) => s + (Number(o.total) || 0), 0);
+  const revAll   = orders.reduce((s, o) => s + (Number(o.total) || 0), 0);
   const avgOrder = orders.length ? revAll / orders.length : 0;
 
+  /* -- LIVE & TODAY TAB ------------------------------------ */
+  if (EyeApi.fetchAnalyticsData) {
+    const aData = await EyeApi.fetchAnalyticsData();
+    if (aData) {
+      // KPI numbers
+      const liveEl   = document.getElementById('analyticsLiveVisitors');
+      const todayEl  = document.getElementById('analyticsTodayVisitors');
+      const citiesEl = document.getElementById('analyticsUniqueCities');
+      if (liveEl)   liveEl.textContent   = aData.liveVisitors;
+      if (todayEl)  todayEl.textContent  = aData.todayVisitors;
+      if (citiesEl) citiesEl.textContent = (aData.geoStats || []).length;
+
+      // Trending product
+      const tProdEl  = document.getElementById('analyticsTrendingProduct');
+      const tStatsEl = document.getElementById('analyticsTrendingStats');
+      if (tProdEl && tStatsEl) {
+        if (aData.productStats && aData.productStats.length > 0) {
+          const top = aData.productStats[0];
+          tProdEl.textContent  = top.name || top.id;
+          tStatsEl.textContent = `Views: ${top.views} | Avg Time: ${top.avgDuration}s`;
+        } else {
+          tProdEl.textContent  = 'No Data Yet';
+          tStatsEl.textContent = 'Views: 0 | Avg Time: 0s';
+        }
+      }
+
+      // Charts and tables
+      renderHourlyChart(aData.hourlyStats || [], 'analyticsHourlyChart');
+      renderGeoTable(aData.geoStats || []);
+      renderPagesChart(aData.pageStats || []);
+
+      // Product views table (enhanced)
+      const vTable = document.getElementById('analyticsProductViewsTable');
+      if (vTable) {
+        if (aData.productStats && aData.productStats.length) {
+          vTable.innerHTML = `<thead><tr><th>#</th><th>Product</th><th>Views</th><th>Avg Time</th><th>Engagement</th></tr></thead><tbody>${
+            aData.productStats.slice(0, 15).map((s, i) => {
+              const eng = s.avgDuration > 120 ? '\uD83D\uDD25 High' : s.avgDuration > 45 ? '\uD83D\uDFE1 Medium' : '\u26AA Low';
+              return `<tr>
+                <td style="color:var(--gray-500);font-size:12px">${i + 1}</td>
+                <td style="color:var(--white);font-size:13px;font-weight:500">${escapeHtml(s.name || s.id)}</td>
+                <td><span class="badge badge-gray">${s.views}</span></td>
+                <td style="color:var(--gray-500)">${s.avgDuration}s</td>
+                <td style="font-size:12px">${eng}</td>
+              </tr>`;
+            }).join('')
+          }</tbody>`;
+        } else {
+          vTable.innerHTML = '<tbody><tr><td colspan="5" style="color:var(--gray-500);padding:16px">No product views recorded yet.</td></tr></tbody>';
+        }
+      }
+
+      // Smart Recommendations
+      renderRecommendations(aData, orders30.length, revAll);
+    }
+  }
+
+  /* -- HISTORICAL TAB -------------------------------------- */
   const statsEl = document.getElementById('analyticsStats');
   if (statsEl) {
     statsEl.innerHTML = `
@@ -1147,40 +1376,29 @@ async function initAnalytics() {
   const chart30 = document.getElementById('analyticsRevenue30');
   if (chart30) {
     chart30.innerHTML = `<div class="chart-bars chart-bars-wide">${vals
-      .map(
-        (v, i) =>
-          `<div class="chart-bar-wrap"><div class="chart-bar-val">${v >= 1000 ? (v / 1000).toFixed(1) + 'K' : Math.round(v)}</div><div class="chart-bar" style="height:${(v / maxV) * 100}%"></div><div class="chart-bar-label">${labels[i] || '·'}</div></div>`
-      )
+      .map((v, i) => `<div class="chart-bar-wrap"><div class="chart-bar-val">${v >= 1000 ? (v / 1000).toFixed(1) + 'K' : Math.round(v)}</div><div class="chart-bar" style="height:${(v / maxV) * 100}%"></div><div class="chart-bar-label">${labels[i] || '·'}</div></div>`)
       .join('')}</div>`;
   }
 
   const st = orderStatusCounts(orders);
-  const stVals = Object.values(st);
-  const stMax = Math.max(1, ...stVals, 0);
+  const stMax = Math.max(1, ...Object.values(st), 0);
   const stEl = document.getElementById('analyticsStatusChart');
   if (stEl) {
     stEl.innerHTML = Object.keys(st).length
-      ? `<div class="chart-bars">${Object.entries(st)
-        .map(
-          ([k, v]) =>
-            `<div class="chart-bar-wrap"><div class="chart-bar-val">${v}</div><div class="chart-bar" style="height:${(v / stMax) * 100}%;background:linear-gradient(180deg,var(--gold),#6a5a32)"></div><div class="chart-bar-label">${escapeHtml(k)}</div></div>`
-        )
-        .join('')}</div>`
+      ? `<div class="chart-bars">${Object.entries(st).map(([k, v]) =>
+          `<div class="chart-bar-wrap"><div class="chart-bar-val">${v}</div><div class="chart-bar" style="height:${(v/stMax)*100}%;background:linear-gradient(180deg,var(--gold),#6a5a32)"></div><div class="chart-bar-label">${escapeHtml(k)}</div></div>`
+        ).join('')}</div>`
       : '<p style="padding:24px;color:var(--gray-500);font-size:13px">No orders yet.</p>';
   }
 
   const pm = paymentMethodCounts(orders);
-  const pmVals = Object.values(pm);
-  const pmMax = Math.max(1, ...pmVals, 0);
+  const pmMax = Math.max(1, ...Object.values(pm), 0);
   const pmEl = document.getElementById('analyticsPaymentChart');
   if (pmEl) {
     pmEl.innerHTML = Object.keys(pm).length
-      ? `<div class="chart-bars">${Object.entries(pm)
-        .map(
-          ([k, v]) =>
-            `<div class="chart-bar-wrap"><div class="chart-bar-val">${v}</div><div class="chart-bar" style="height:${(v / pmMax) * 100}%;background:#4a6fa5"></div><div class="chart-bar-label" style="font-size:8px">${escapeHtml(k)}</div></div>`
-        )
-        .join('')}</div>`
+      ? `<div class="chart-bars">${Object.entries(pm).map(([k, v]) =>
+          `<div class="chart-bar-wrap"><div class="chart-bar-val">${v}</div><div class="chart-bar" style="height:${(v/pmMax)*100}%;background:#4a6fa5"></div><div class="chart-bar-label" style="font-size:8px">${escapeHtml(k)}</div></div>`
+        ).join('')}</div>`
       : '<p style="padding:24px;color:var(--gray-500);font-size:13px">No payment data yet.</p>';
   }
 
@@ -1188,56 +1406,20 @@ async function initAnalytics() {
   const tpEl = document.getElementById('analyticsTopProducts');
   if (tpEl) {
     tpEl.innerHTML = `<thead><tr><th>Product</th><th>Revenue (est.)</th></tr></thead><tbody>${top
-      .map(
-        ([name, amt]) =>
-          `<tr><td style="color:var(--white);font-size:13px">${escapeHtml(name)}</td><td style="font-family:var(--font-serif)">${formatPrice(amt)}</td></tr>`
-      )
+      .map(([name, amt]) => `<tr><td style="color:var(--white);font-size:13px">${escapeHtml(name)}</td><td style="font-family:var(--font-serif)">${formatPrice(amt)}</td></tr>`)
       .join('')}</tbody>`;
     if (!top.length) tpEl.innerHTML = '<tbody><tr><td colspan="2" style="color:var(--gray-500);padding:16px">No line items on orders yet.</td></tr></tbody>';
   }
-
-  // Live Behavioral Analytics
-  if (EyeApi.fetchAnalyticsData) {
-    const aData = await EyeApi.fetchAnalyticsData();
-    if (aData) {
-      const liveEl = document.getElementById('analyticsLiveVisitors');
-      if (liveEl) liveEl.textContent = aData.liveVisitors;
-
-      const todayEl = document.getElementById('analyticsTodayVisitors');
-      if (todayEl) todayEl.textContent = aData.todayVisitors;
-
-      const vTable = document.getElementById('analyticsProductViewsTable');
-      if (vTable) {
-        vTable.innerHTML = `<thead><tr><th>Product</th><th>Views</th><th>Avg Time</th></tr></thead><tbody>${aData.productStats.slice(0, 10).map(s =>
-          `<tr><td style="color:var(--white);font-size:13px">${escapeHtml(s.name || s.id)}</td><td>${s.views}</td><td>${s.avgDuration}s</td></tr>`
-        ).join('')}</tbody>`;
-        if (!aData.productStats.length) {
-          vTable.innerHTML = '<tbody><tr><td colspan="3" style="color:var(--gray-500);padding:16px">No product views recorded yet.</td></tr></tbody>';
-        }
-      }
-
-      const tProdEl = document.getElementById('analyticsTrendingProduct');
-      const tStatsEl = document.getElementById('analyticsTrendingStats');
-      if (tProdEl && tStatsEl) {
-        if (aData.productStats.length > 0) {
-          const topProduct = aData.productStats[0];
-          tProdEl.textContent = topProduct.name || topProduct.id;
-          tStatsEl.textContent = `Views: ${topProduct.views} | Avg Time: ${topProduct.avgDuration}s`;
-        } else {
-          tProdEl.textContent = 'No Data';
-          tStatsEl.textContent = 'Views: 0 | Avg Time: 0s';
-        }
-      }
-    }
-  }
 }
 
-// Polling for live analytics
+// Auto-refresh every 30s while analytics tab is active
 setInterval(() => {
   if (document.getElementById('page-analytics')?.classList.contains('active')) {
     initAnalytics();
   }
 }, 30000);
+
+
 
 function printOrder(orderId) {
   const o = _adminOrdersCache.find((x) => String(x.id) === String(orderId));
@@ -1491,6 +1673,8 @@ async function clearTodayAnalytics() {
 }
 
 async function initSettings() {
+  await loadMaintenanceSettings();
+
   const hpRaw = await EyeApi.getSiteSetting('homepage');
   const ta = document.getElementById('homepageJson');
   if (ta) {
@@ -1569,6 +1753,68 @@ async function initSettings() {
   await renderAnnouncementsAdmin();
   await renderNavAdmin();
   await renderCategoriesAdmin();
+}
+
+/* ── Maintenance Mode Settings ── */
+async function loadMaintenanceSettings() {
+  const raw = await EyeApi.getSiteSetting('maintenance');
+  if (raw) {
+    try {
+      const m = JSON.parse(raw);
+      document.getElementById('maintActive').checked = m.active || false;
+      document.getElementById('maintTitleInput').value = m.title || '';
+      document.getElementById('maintHeadingInput').value = m.heading || '';
+      document.getElementById('maintDescInput').value = m.description || '';
+      document.getElementById('maintBtnTextInput').value = m.buttonText || '';
+      document.getElementById('maintBtnUrlInput').value = m.buttonUrl || '';
+      document.getElementById('maintFooterInput').value = m.footerText || '';
+    } catch(e) {}
+  }
+}
+
+async function saveMaintenanceSettings() {
+  const m = {
+    active: document.getElementById('maintActive').checked,
+    title: document.getElementById('maintTitleInput').value.trim(),
+    heading: document.getElementById('maintHeadingInput').value.trim(),
+    description: document.getElementById('maintDescInput').value.trim(),
+    buttonText: document.getElementById('maintBtnTextInput').value.trim(),
+    buttonUrl: document.getElementById('maintBtnUrlInput').value.trim(),
+    footerText: document.getElementById('maintFooterInput').value.trim()
+  };
+  const r = await EyeApi.adminSetSiteSetting('maintenance', JSON.stringify(m));
+  if (!r.ok) showToast('Failed to save maintenance settings');
+  else {
+    showToast('Maintenance settings saved successfully');
+    EyeApi.writeLog('UPDATE_MAINTENANCE', 'site_settings', 'maintenance', 'Admin updated maintenance mode settings');
+  }
+}
+
+function previewMaintenanceSettings() {
+  const m = {
+    title: document.getElementById('maintTitleInput').value.trim() || 'Coming Soon',
+    heading: document.getElementById('maintHeadingInput').value.trim() || "We're Working on Something Amazing",
+    description: document.getElementById('maintDescInput').value.trim() || "Our website is currently undergoing improvements...",
+    buttonText: document.getElementById('maintBtnTextInput').value.trim(),
+    footerText: document.getElementById('maintFooterInput').value.trim() || "© 2026 JOLARDO"
+  };
+  
+  const descHtml = m.description.replace(/\n/g, '<br>');
+  const btnHtml = m.buttonText ? `<a href="#" class="btn btn-gold" style="padding: 16px 36px; letter-spacing: 0.2em; font-size: 11px; text-decoration: none;">${escapeHtml(m.buttonText)}</a>` : '';
+  
+  const html = `
+    <div style="background: var(--black); color: var(--white); min-height: 400px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px; position: relative;">
+      <div style="font-family: var(--font-serif); font-size: 32px; font-weight: 300; letter-spacing: 0.3em; margin-bottom: 24px; text-transform: uppercase; color: var(--white);">eye</div>
+      <h1 style="font-family: var(--font-serif); font-size: 24px; margin-bottom: 16px; color: var(--gold); max-width: 700px; line-height: 1.3;">${escapeHtml(m.heading)}</h1>
+      <div style="font-family: var(--font-sans); font-size: 14px; color: var(--gray-500); line-height: 1.8; max-width: 550px; margin-bottom: 30px;">${descHtml}</div>
+      ${btnHtml}
+      <div style="position: absolute; bottom: 20px; font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gray-500);">${escapeHtml(m.footerText)}</div>
+    </div>
+  `;
+  
+  document.getElementById('modalTitle').textContent = `Preview: ${m.title}`;
+  document.getElementById('modalBody').innerHTML = html;
+  document.getElementById('modalOverlay').classList.add('open');
 }
 
 async function saveHomepageJson() {
@@ -2121,3 +2367,151 @@ async function renderLogsTable(filter = 'all') {
       </tr>
     `}).join('')}</tbody>`;
 }
+
+/* ── Notifications & Alerts ──────────────────────────────── */
+
+async function getNotificationsList() {
+  const alerts = [];
+  try {
+    // 1. Low stock products
+    const products = await EyeApi.fetchProducts();
+    const lowStockThreshold = 3;
+    
+    products.forEach(p => {
+      let totalStock = p.stock || 0;
+      let sizeStocks = p.sizeStocks || {};
+      
+      if (Object.keys(sizeStocks).length > 0) {
+        Object.entries(sizeStocks).forEach(([sz, st]) => {
+          if (st > 0 && st <= lowStockThreshold) {
+            alerts.push({ id: `low-${p.id}-${sz}`, type: 'warning', icon: '⚠️', title: 'Low Stock', message: `${p.name} (Size: ${sz}) has only ${st} item(s) left.`, link: 'products' });
+          } else if (st === 0 && p.sizes && p.sizes.includes(sz)) {
+            alerts.push({ id: `out-${p.id}-${sz}`, type: 'danger', icon: '🚨', title: 'Out of Stock', message: `${p.name} (Size: ${sz}) is out of stock!`, link: 'products' });
+          }
+        });
+      } else {
+        if (totalStock > 0 && totalStock <= lowStockThreshold) {
+          alerts.push({ id: `low-${p.id}`, type: 'warning', icon: '⚠️', title: 'Low Stock', message: `${p.name} has only ${totalStock} item(s) left.`, link: 'products' });
+        } else if (totalStock === 0) {
+          alerts.push({ id: `out-${p.id}`, type: 'danger', icon: '🚨', title: 'Out of Stock', message: `${p.name} is entirely out of stock!`, link: 'products' });
+        }
+      }
+    });
+
+    // 2. Pending Orders
+    const orders = await EyeApi.fetchOrders();
+    const pendingOrders = orders.filter(o => o.status === 'Pending');
+    if (pendingOrders.length > 0) {
+      alerts.push({ id: `pending-orders-${pendingOrders.length}`, type: 'info', icon: '📦', title: 'Pending Orders', message: `You have ${pendingOrders.length} pending order(s) waiting for processing.`, link: 'orders' });
+    }
+
+    // 3. Unread Messages (recent 3 days)
+    if (EyeApi.fetchContactMessages) {
+      const messages = await EyeApi.fetchContactMessages();
+      const threeDaysAgo = new Date(Date.now() - 3 * 86400000);
+      const recentMessages = messages.filter(m => new Date(m.created_at) > threeDaysAgo);
+      if (recentMessages.length > 0) {
+        alerts.push({ id: `messages-${recentMessages.length}`, type: 'info', icon: '✉️', title: 'New Messages', message: `You have ${recentMessages.length} contact message(s) in the last 3 days.`, link: 'contact-admin' });
+      }
+    }
+
+  } catch (e) {
+    console.error('Error fetching notifications:', e);
+  }
+  return alerts;
+}
+
+async function updateNotificationBadge() {
+  const badge = document.getElementById('navBadgeNotifications');
+  if (!badge) return;
+  const alerts = await getNotificationsList();
+  if (alerts.length > 0) {
+    badge.textContent = alerts.length;
+    badge.style.display = 'inline-block';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+async function initNotifications() {
+  const tb = document.getElementById('notificationsTable');
+  if (!tb) return;
+  
+  tb.innerHTML = '<tbody><tr><td style="padding:20px;color:var(--gray-500);font-size:13px;text-align:center;">Loading alerts...</td></tr></tbody>';
+  
+  const allAlerts = await getNotificationsList();
+  
+  // Filter out dismissed alerts stored in localStorage
+  const dismissed = JSON.parse(localStorage.getItem('eye_dismissed_alerts') || '[]');
+  const alerts = allAlerts.filter(a => !dismissed.includes(a.id));
+  
+  // Update badge with non-dismissed count
+  const badge = document.getElementById('navBadgeNotifications');
+  if (badge) {
+    if (alerts.length > 0) { badge.textContent = alerts.length; badge.style.display = 'inline-block'; }
+    else { badge.style.display = 'none'; }
+  }
+  
+  if (alerts.length === 0) {
+    tb.innerHTML = '<tbody><tr><td style="padding:40px 20px;color:var(--gray-500);font-size:13px;text-align:center;">🎉 All good! No active alerts at the moment.</td></tr></tbody>';
+    return;
+  }
+  
+  const borderColors = { 'danger': '#e53e3e', 'warning': '#f59e0b', 'info': '#3182ce' };
+  
+  tb.innerHTML = `<tbody>${alerts.map((a) => {
+    return `<tr id="alert-row-${a.id}" style="border-bottom:1px solid var(--gray-200); transition:background 0.2s; opacity:1;" onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background='transparent'">
+      <td style="padding:16px 20px; width:50px; font-size:24px; text-align:center;">${a.icon}</td>
+      <td style="padding:16px 20px; cursor:pointer;" onclick="showPage('${a.link}')">
+        <div style="font-weight:600; color:${borderColors[a.type]}; font-size:13px; margin-bottom:4px;">${escapeHtml(a.title)}</div>
+        <div style="color:var(--white); font-size:14px; line-height:1.4;">${escapeHtml(a.message)}</div>
+      </td>
+      <td style="padding:16px 20px; text-align:right; white-space:nowrap;">
+        <button class="btn btn-outline" style="font-size:10px; padding:6px 12px; margin-right:6px;" onclick="showPage('${a.link}')">View</button>
+        <button class="btn btn-gold" style="font-size:10px; padding:6px 12px;" onclick="dismissAlert('${a.id}')">✓ Mark Read</button>
+      </td>
+    </tr>`;
+  }).join('')}</tbody>`;
+}
+
+function dismissAlert(alertId) {
+  // Animate row out
+  const row = document.getElementById('alert-row-' + alertId);
+  if (row) {
+    row.style.transition = 'opacity 0.4s, max-height 0.4s';
+    row.style.opacity = '0';
+    setTimeout(() => { row.style.display = 'none'; }, 420);
+  }
+  // Save to localStorage
+  const dismissed = JSON.parse(localStorage.getItem('eye_dismissed_alerts') || '[]');
+  if (!dismissed.includes(alertId)) dismissed.push(alertId);
+  // Keep only last 200 dismissals to avoid bloat
+  if (dismissed.length > 200) dismissed.splice(0, dismissed.length - 200);
+  localStorage.setItem('eye_dismissed_alerts', JSON.stringify(dismissed));
+  // Update badge
+  const badge = document.getElementById('navBadgeNotifications');
+  if (badge) {
+    const current = parseInt(badge.textContent) || 0;
+    const newCount = Math.max(0, current - 1);
+    if (newCount > 0) { badge.textContent = newCount; }
+    else { badge.style.display = 'none'; }
+  }
+}
+
+async function updateNotificationBadge() {
+  const badge = document.getElementById('navBadgeNotifications');
+  if (!badge) return;
+  const allAlerts = await getNotificationsList();
+  const dismissed = JSON.parse(localStorage.getItem('eye_dismissed_alerts') || '[]');
+  const active = allAlerts.filter(a => !dismissed.includes(a.id));
+  if (active.length > 0) {
+    badge.textContent = active.length;
+    badge.style.display = 'inline-block';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+// Start polling badge immediately and every 2 minutes
+setTimeout(updateNotificationBadge, 2000);
+setInterval(updateNotificationBadge, 120000);

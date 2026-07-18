@@ -1,11 +1,92 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>𝐌𝐲 𝐎𝐫𝐝𝐞𝐫𝐬 - 𝐄𝐘𝐄ᵀᴹ </title>
+<!-- MAINTENANCE CHECK -->
+<script>
+(async function(){
+  try {
+    const res = await fetch("https://fuxqnwlxorojmpvcpxop.supabase.co/rest/v1/site_settings?key=eq.maintenance&select=value", {
+      headers: { 'apikey': "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ1eHFud2x4b3Jvam1wdmNweG9wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwMjAzMzgsImV4cCI6MjA5MTU5NjMzOH0.FFbbSp_JuLgNeimlPkZ2OJ-v2bRhZgZgkTyeJgk4QOc", 'Authorization': "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ1eHFud2x4b3Jvam1wdmNweG9wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwMjAzMzgsImV4cCI6MjA5MTU5NjMzOH0.FFbbSp_JuLgNeimlPkZ2OJ-v2bRhZgZgkTyeJgk4QOc" }
+    });
+    const data = await res.json();
+    if (data && data[0]) { const m = JSON.parse(data[0].value); if (m && m.active === true) { window.location.replace('maintenance.html'); } }
+  } catch(e) {}
+})();
+</script>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Track My Orders | EYE-EG </title>
+<meta name="description" content="View and track the status of your premium streetwear orders from EYE-EG Egypt. Check order fulfillment, shipping, and delivery details." />
+<meta name="keywords" content="Track Order Egypt, EYE-EG Orders, Clothing Order Tracking Cairo, Streetwear Delivery" />
+<link rel="canonical" href="https://eye-eg.store/orders" />
+
+<!-- Open Graph / Facebook -->
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://eye-eg.store/orders" />
+<meta property="og:title" content="Track My Orders | EYE-EG — Premium Streetwear Brand" />
+<meta property="og:description" content="View and track the status of your premium streetwear orders from EYE-EG Egypt. Check order fulfillment, shipping, and delivery details." />
+<meta property="og:image" content="https://eye-eg.store/pics/1.png" />
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:url" content="https://eye-eg.store/orders" />
+<meta name="twitter:title" content="Track My Orders | EYE-EG — Premium Streetwear Brand" />
+<meta name="twitter:description" content="View and track the status of your premium streetwear orders from EYE-EG Egypt. Check order fulfillment, shipping, and delivery details." />
+<meta name="twitter:image" content="https://eye-eg.store/pics/1.png" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://fuxqnwlxorojmpvcpxop.supabase.co">
+<link rel="dns-prefetch" href="https://ip-api.com">
+<link rel="dns-prefetch" href="https://esm.sh">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&display=swap"></noscript>
 <link rel="icon" type="image/png" href="pics/1.png">
 <link rel="stylesheet" href="css/shared.css" />
 <link rel="stylesheet" href="css/orders.css" />
+
+<!-- Structured Data -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebPage",
+      "@id": "https://eye-eg.store/orders#webpage",
+      "url": "https://eye-eg.store/orders",
+      "name": "Track My Orders | EYE-EG",
+      "description": "View details of your past and current streetwear purchases at EYE-EG.",
+      "breadcrumb": {
+        "@id": "https://eye-eg.store/orders#breadcrumb"
+      }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "@id": "https://eye-eg.store/orders#breadcrumb",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://eye-eg.store/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Profile",
+          "item": "https://eye-eg.store/profile"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Orders",
+          "item": "https://eye-eg.store/orders"
+        }
+      ]
+    }
+  ]
+}
+</script>
 </head>
 <body>
 <div id="pageLoader" class="page-loader"><div class="loader-logo">eye</div><div class="loader-bar"></div></div>
@@ -32,10 +113,10 @@
 
 <div id="footer-container"></div>
 <div class="toast" id="toast"></div>
-<script src="js/config.js"></script>
-<script src="js/api.js"></script>
-<script src="js/analytics.js"></script>
-<script src="js/shared.js"></script>
-<script src="js/orders.js"></script>
+<script src="js/config.js" defer></script>
+<script src="js/api.js" defer></script>
+<script src="js/analytics.js" defer></script>
+<script src="js/shared.js" defer></script>
+<script src="js/orders.js" defer></script>
 </body>
 </html>

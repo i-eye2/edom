@@ -1,105 +1,190 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>𝐬𝐡𝐨𝐩 𝐚𝐥𝐥 - 𝐄𝐘𝐄ᵀᴹ </title>
-<link rel="icon" type="image/png" href="pics/1.png">
-<link rel="stylesheet" href="css/shared.css" />
-<link rel="stylesheet" href="css/shop.css" />
+  <!-- MAINTENANCE CHECK -->
+  <script>
+    (async function () {
+      try {
+        const res = await fetch("https://fuxqnwlxorojmpvcpxop.supabase.co/rest/v1/site_settings?key=eq.maintenance&select=value", {
+          headers: { 'apikey': "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ1eHFud2x4b3Jvam1wdmNweG9wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwMjAzMzgsImV4cCI6MjA5MTU5NjMzOH0.FFbbSp_JuLgNeimlPkZ2OJ-v2bRhZgZgkTyeJgk4QOc", 'Authorization': "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ1eHFud2x4b3Jvam1wdmNweG9wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwMjAzMzgsImV4cCI6MjA5MTU5NjMzOH0.FFbbSp_JuLgNeimlPkZ2OJ-v2bRhZgZgkTyeJgk4QOc" }
+        });
+        const data = await res.json();
+        if (data && data[0]) { const m = JSON.parse(data[0].value); if (m && m.active === true) { window.location.replace('maintenance.html'); } }
+      } catch (e) { }
+    })();
+  </script>
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Primary SEO -->
+  <title>Shop All | EYE-EG </title>
+  <meta name="description" content="Browse the full EYE-EG collection. Shop premium streetwear including oversized t-shirts, hoodies, and luxury fashion apparel shipped across Egypt." />
+  <meta name="keywords" content="Shop EYE-EG, Buy Streetwear Egypt, Hoodies Cairo, Oversized T-Shirts Egypt, Online Clothing Store Egypt, Premium Fashion Egypt" />
+  <link rel="canonical" href="https://eye-eg.store/shop" />
+  <meta name="robots" content="index, follow" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="EYE-EG" />
+  <meta property="og:url" content="https://eye-eg.store/shop" />
+  <meta property="og:title" content="Shop All | EYE-EG — Premium Streetwear, Hoodies &amp; T-Shirts Egypt" />
+  <meta property="og:description" content="Browse the full EYE-EG collection. Shop premium streetwear including oversized t-shirts, hoodies, and luxury fashion apparel shipped across Egypt." />
+  <meta property="og:image" content="https://eye-eg.store/pics/1.png" />
+  <meta property="og:locale" content="en_US" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content="https://eye-eg.store/shop" />
+  <meta name="twitter:title" content="Shop All | EYE-EG — Premium Streetwear, Hoodies &amp; T-Shirts Egypt" />
+  <meta name="twitter:description" content="Browse the full EYE-EG collection. Shop premium streetwear including oversized t-shirts, hoodies, and luxury fashion apparel shipped across Egypt." />
+  <meta name="twitter:image" content="https://eye-eg.store/pics/1.png" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://fuxqnwlxorojmpvcpxop.supabase.co">
+  <link rel="dns-prefetch" href="https://ip-api.com">
+  <link rel="dns-prefetch" href="https://esm.sh">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&display=swap" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&display=swap"></noscript>
+  <link rel="icon" type="image/png" href="pics/1.png">
+  <link rel="stylesheet" href="css/shared.css" />
+  <link rel="stylesheet" href="css/shop.css" />
+
+  <!-- Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebPage",
+        "@id": "https://eye-eg.store/shop#webpage",
+        "url": "https://eye-eg.store/shop",
+        "name": "Shop All | EYE-EG",
+        "description": "Browse all clothing products from EYE-EG including streetwear, hoodies, t-shirts and exclusive Egyptian fashion.",
+        "breadcrumb": { "@id": "https://eye-eg.store/shop#breadcrumb" },
+        "isPartOf": { "@id": "https://eye-eg.store/#website" }
+      },
+      {
+        "@type": "BreadcrumbList",
+        "@id": "https://eye-eg.store/shop#breadcrumb",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://eye-eg.store/" },
+          { "@type": "ListItem", "position": 2, "name": "Shop All", "item": "https://eye-eg.store/shop" }
+        ]
+      }
+    ]
+  }
+  </script>
 </head>
+
 <body>
-<div id="pageLoader" class="page-loader"><div class="loader-logo">eye</div><div class="loader-bar"></div></div>
-<div id="navbar-container"></div>
-
-<div class="shop-hero" id="shopHeroRoot">
-  <div class="shop-hero-bg" id="shopHeroBg" aria-hidden="true"></div>
-  <div class="shop-hero-scrim"></div>
-  <div class="shop-hero-content">
-    <h1>All <em>Products</em></h1>
-    <p id="shopSubtitle">Explore the full collection</p>
+  <div id="pageLoader" class="page-loader">
+    <div class="loader-logo">eye</div>
+    <div class="loader-bar"></div>
   </div>
-</div>
+  <div id="navbar-container"></div>
 
-<div class="shop-layout">
-  <aside class="sidebar" id="shopFiltersSidebar">
-    <button type="button" class="shop-filters-toggle" id="shopFiltersToggle" onclick="toggleShopFilters()" aria-label="Toggle filters">
-      <span class="shop-filters-icon" aria-hidden="true">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
-          <line x1="4" y1="6" x2="20" y2="6"></line>
-          <circle cx="9" cy="6" r="1.8"></circle>
-          <line x1="4" y1="12" x2="20" y2="12"></line>
-          <circle cx="15" cy="12" r="1.8"></circle>
-          <line x1="4" y1="18" x2="20" y2="18"></line>
-          <circle cx="11" cy="18" r="1.8"></circle>
-        </svg>
-      </span>
-    </button>
-    <div class="shop-filters-panel" id="shopFiltersPanel">
-    <div class="sidebar-section">
-      <div class="sidebar-title">Category</div>
-      <div id="categoryFilters"></div>
+  <div class="shop-hero" id="shopHeroRoot">
+    <div class="shop-hero-bg" id="shopHeroBg" aria-hidden="true"></div>
+    <div class="shop-hero-scrim"></div>
+    <div class="shop-hero-content">
+      <h1>All <em>Products</em></h1>
+      <p id="shopSubtitle">Explore the full collection</p>
     </div>
-    <div class="sidebar-section">
-      <div class="sidebar-title">Price Range</div>
-      <div class="price-inputs">
-        <input type="number" id="priceMin" placeholder="Min" value="0" onchange="filterChange()" />
-        <span class="price-sep">—</span>
-        <input type="number" id="priceMax" placeholder="Max" value="999999" onchange="filterChange()" />
-      </div>
-    </div>
-    <div class="sidebar-section">
-      <div class="sidebar-title">Size</div>
-      <div class="size-filters" id="sizeFilters">
-        <button type="button" class="size-btn" onclick="toggleSize(this)">S</button>
-        <button type="button" class="size-btn" onclick="toggleSize(this)">M</button>
-        <button type="button" class="size-btn" onclick="toggleSize(this)">L</button>
-        <button type="button" class="size-btn" onclick="toggleSize(this)">XL</button>
-      </div>
-    </div>
-    <div class="sidebar-section">
-      <button type="button" class="btn btn-outline" onclick="clearFilters()" style="width:100%">Clear Filters</button>
-    </div>
-    </div>
-  </aside>
+  </div>
 
-  <main>
-    <div class="shop-topbar">
-      <div class="search-wrap">
-        <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-        <input type="text" id="searchInput" placeholder="Search products..." oninput="filterChange()" />
+  <div class="shop-layout">
+    <aside class="sidebar" id="shopFiltersSidebar">
+      <button type="button" class="shop-filters-toggle" id="shopFiltersToggle" onclick="toggleShopFilters()"
+        aria-label="Toggle filters">
+        <span class="shop-filters-icon" aria-hidden="true">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+            stroke-linecap="round">
+            <line x1="4" y1="6" x2="20" y2="6"></line>
+            <circle cx="9" cy="6" r="1.8"></circle>
+            <line x1="4" y1="12" x2="20" y2="12"></line>
+            <circle cx="15" cy="12" r="1.8"></circle>
+            <line x1="4" y1="18" x2="20" y2="18"></line>
+            <circle cx="11" cy="18" r="1.8"></circle>
+          </svg>
+        </span>
+      </button>
+      <div class="shop-filters-panel" id="shopFiltersPanel">
+        <div class="sidebar-section">
+          <div class="sidebar-title">Category</div>
+          <div id="categoryFilters"></div>
+        </div>
+        <div class="sidebar-section">
+          <div class="sidebar-title">Price Range</div>
+          <div class="price-inputs">
+            <input type="number" id="priceMin" placeholder="Min" value="0" onchange="filterChange()" />
+            <span class="price-sep">—</span>
+            <input type="number" id="priceMax" placeholder="Max" value="999999" onchange="filterChange()" />
+          </div>
+        </div>
+        <div class="sidebar-section">
+          <div class="sidebar-title">Size</div>
+          <div class="size-filters" id="sizeFilters">
+            <button type="button" class="size-btn" onclick="toggleSize(this)">S</button>
+            <button type="button" class="size-btn" onclick="toggleSize(this)">M</button>
+            <button type="button" class="size-btn" onclick="toggleSize(this)">L</button>
+            <button type="button" class="size-btn" onclick="toggleSize(this)">XL</button>
+          </div>
+        </div>
+        <div class="sidebar-section">
+          <button type="button" class="btn btn-outline" onclick="clearFilters()" style="width:100%">Clear
+            Filters</button>
+        </div>
       </div>
-      <div class="shop-mobile-controls">
-        <button type="button" class="shop-filters-toggle shop-filters-toggle-compact" id="shopFiltersTopToggle" onclick="toggleShopFilters()" aria-label="Toggle filters">
-          <span class="shop-filters-icon" aria-hidden="true">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
-              <line x1="4" y1="6" x2="20" y2="6"></line>
-              <circle cx="9" cy="6" r="1.8"></circle>
-              <line x1="4" y1="12" x2="20" y2="12"></line>
-              <circle cx="15" cy="12" r="1.8"></circle>
-              <line x1="4" y1="18" x2="20" y2="18"></line>
-              <circle cx="11" cy="18" r="1.8"></circle>
-            </svg>
-          </span>
-        </button>
-        <select class="sort-select sort-select-compact" id="sortSelect" onchange="filterChange()">
-          <option value="newest">Newest</option>
-          <option value="price-asc">Price: Low → High</option>
-          <option value="price-desc">Price: High → Low</option>
-        </select>
-      </div>
-      <span class="results-count" id="resultsCount">—</span>
-    </div>
-    <div id="activeFilters" class="active-filters"></div>
-    <div class="products-grid" id="productsGrid"></div>
-  </main>
-</div>
+    </aside>
 
-<div id="footer-container"></div>
-<div class="toast" id="toast"></div>
-<script src="js/config.js"></script>
-<script src="js/api.js"></script>
-<script src="js/analytics.js"></script>
-<script src="js/shared.js"></script>
-<script src="js/shop.js"></script>
+    <main>
+      <div class="shop-topbar">
+        <div class="search-wrap">
+          <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="1.5">
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.35-4.35" />
+          </svg>
+          <input type="text" id="searchInput" placeholder="Search products..." oninput="filterChange()" />
+        </div>
+        <div class="shop-mobile-controls">
+          <button type="button" class="shop-filters-toggle shop-filters-toggle-compact" id="shopFiltersTopToggle"
+            onclick="toggleShopFilters()" aria-label="Toggle filters">
+            <span class="shop-filters-icon" aria-hidden="true">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                stroke-linecap="round">
+                <line x1="4" y1="6" x2="20" y2="6"></line>
+                <circle cx="9" cy="6" r="1.8"></circle>
+                <line x1="4" y1="12" x2="20" y2="12"></line>
+                <circle cx="15" cy="12" r="1.8"></circle>
+                <line x1="4" y1="18" x2="20" y2="18"></line>
+                <circle cx="11" cy="18" r="1.8"></circle>
+              </svg>
+            </span>
+          </button>
+          <select class="sort-select sort-select-compact" id="sortSelect" onchange="filterChange()">
+            <option value="newest">Newest</option>
+            <option value="price-asc">Price: Low → High</option>
+            <option value="price-desc">Price: High → Low</option>
+          </select>
+        </div>
+        <span class="results-count" id="resultsCount">—</span>
+      </div>
+      <div id="activeFilters" class="active-filters"></div>
+      <div class="products-grid" id="productsGrid"></div>
+    </main>
+  </div>
+
+  <div id="footer-container"></div>
+  <div class="toast" id="toast"></div>
+  <script src="js/config.js" defer></script>
+  <script src="js/api.js" defer></script>
+  <script src="js/analytics.js" defer></script>
+  <script src="js/shared.js" defer></script>
+  <script src="js/shop.js" defer></script>
 </body>
+
 </html>

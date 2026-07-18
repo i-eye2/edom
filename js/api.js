@@ -4,8 +4,15 @@
 const EyeApi = (function () {
   let supabase = null;
   let ready = false;
-  const orderChimeAudio = new Audio('1.mp3');
-  orderChimeAudio.preload = 'auto';
+  // Lazy-loaded audio — only resolved on admin pages that actually need it
+  let orderChimeAudio = null;
+  function getChimeAudio() {
+    if (!orderChimeAudio) {
+      orderChimeAudio = new Audio('1.mp3');
+      orderChimeAudio.preload = 'auto';
+    }
+    return orderChimeAudio;
+  }
 
   const playedOrdersInMemory = new Set();
   let orderChimeBC = null;
@@ -72,7 +79,7 @@ const EyeApi = (function () {
         { event: '*', schema: 'public' },
         (payload) => {
           const table = payload.table;
-          console.log(`[Realtime Notification] Change in table '${table}':`, payload);
+          // Realtime change received — cache invalidation below
           
           // Invalidate specific caches
           if (table === 'products') {
@@ -137,13 +144,11 @@ const EyeApi = (function () {
                   
                   // Play audio
                   try {
-                    orderChimeAudio.currentTime = 0;
-                    orderChimeAudio.play().catch(err => {
-                      console.warn('[Realtime Sound] Chime autoplay prevented:', err);
-                    });
+                    const chime = getChimeAudio();
+                    chime.currentTime = 0;
+                    chime.play().catch(() => {});
                   } catch (e) {
-                    orderChimeAudio.currentTime = 0;
-                    orderChimeAudio.play().catch(() => {});
+                    try { getChimeAudio().play().catch(() => {}); } catch (_) {}
                   }
                 }, delay);
               }
@@ -162,18 +167,12 @@ const EyeApi = (function () {
           
           // Call registered callbacks
           realtimeCallbacks.forEach(cb => {
-            try {
-              cb(table, payload);
-            } catch (e) {
-              console.error('Error in realtime callback:', e);
-            }
+            try { cb(table, payload); } catch (_) {}
           });
         }
       );
     
-    realtimeChannel.subscribe((status) => {
-      console.log('Supabase Realtime subscription status:', status);
-    });
+    realtimeChannel.subscribe(() => {});
   }
 
   async function init() {
@@ -447,6 +446,15 @@ const EyeApi = (function () {
     const val = data?.value ?? '';
     settingsCache[key] = val;
     return val;
+  }
+
+  // Always fetch fresh from Supabase - no cache. Used for maintenance check.
+  async function getMaintenanceSetting() {
+    await init();
+    if (!supabase) return null;
+    const { data, error } = await supabase.from('site_settings').select('value').eq('key', 'maintenance').maybeSingle();
+    if (error || !data) return null;
+    try { return JSON.parse(data.value); } catch(e) { return null; }
   }
 
   async function fetchMarqueeText() {
@@ -1394,15 +1402,21 @@ const EyeApi = (function () {
 
     const { data: session } = await supabase.auth.getSession();
     const uid = session?.session?.user?.id;
-    if (uid && (await isAdminUid(uid))) return { ok: true }; // Skip admin
+    if (uid && (await isAdminUid(uid))) return { ok: true }; // Skip admin tracking
 
     const row = {
-      event_type: String(event.event_type || 'page_view'),
-      product_id: event.product_id || null,
+      event_type:   String(event.event_type || 'page_view'),
+      product_id:   event.product_id || null,
       product_name: event.product_name || null,
-      session_id: event.session_id || null,
+      session_id:   event.session_id || null,
       duration_sec: event.duration_sec != null ? Math.floor(Number(event.duration_sec)) : null,
-      page: event.page || null,
+      page:         event.page || null,
+      // Geo fields — supplied by analytics.js via ip-api.com
+      ip_address:   event.ip_address || null,
+      city:         event.city || null,
+      country:      event.country || null,
+      country_code: event.country_code || null,
+      page_path:    event.page_path || null,
     };
     const { error } = await supabase.from('analytics_events').insert(row);
     if (error) console.warn('EYE Analytics save:', error.message);
@@ -1415,40 +1429,94 @@ const EyeApi = (function () {
     const uid = (await supabase.auth.getSession()).data.session?.user?.id;
     if (!(await isAdminUid(uid))) return null;
 
-    const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
-    const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
+    const fiveMinAgo  = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+    const todayStart  = new Date(); todayStart.setHours(0, 0, 0, 0);
+    const todayISO    = todayStart.toISOString();
 
-    const [liveRes, viewsRes, durRes, todayRes] = await Promise.all([
+    const [liveRes, viewsRes, durRes, todayRes, geoRes, hourlyRes, pageRes] = await Promise.all([
+      // Live visitors (last 5 min — any event)
       supabase.from('analytics_events').select('session_id').gte('created_at', fiveMinAgo),
+      // All product views (all time)
       supabase.from('analytics_events').select('product_id,product_name').eq('event_type', 'product_view'),
+      // Product exit durations (all time)
       supabase.from('analytics_events').select('product_id,product_name,duration_sec').eq('event_type', 'product_exit').not('duration_sec', 'is', null),
-      supabase.from('analytics_events').select('session_id').eq('event_type', 'page_view').gte('created_at', todayStart.toISOString()),
+      // Today's unique sessions (page_view events)
+      supabase.from('analytics_events').select('session_id').eq('event_type', 'page_view').gte('created_at', todayISO),
+      // Geo breakdown — group by city/country today
+      supabase.from('analytics_events').select('session_id,city,country,country_code,ip_address').gte('created_at', todayISO).not('city', 'is', null),
+      // Hourly traffic today
+      supabase.from('analytics_events').select('created_at,session_id').gte('created_at', todayISO),
+      // Page path breakdown today
+      supabase.from('analytics_events').select('page_path,page,session_id').eq('event_type', 'page_view').gte('created_at', todayISO),
     ]);
 
-    const liveVisitors = new Set((liveRes.data || []).map((r) => r.session_id)).size;
-    const todayVisitors = new Set((todayRes.data || []).map((r) => r.session_id)).size;
+    // Live visitors
+    const liveVisitors  = new Set((liveRes.data || []).map(r => r.session_id)).size;
+    const todayVisitors = new Set((todayRes.data || []).map(r => r.session_id)).size;
 
+    // Product stats
     const viewCounts = {}; const viewNames = {};
-    (viewsRes.data || []).forEach((r) => {
+    (viewsRes.data || []).forEach(r => {
       if (!r.product_id) return;
       viewCounts[r.product_id] = (viewCounts[r.product_id] || 0) + 1;
-      viewNames[r.product_id] = r.product_name || r.product_id;
+      viewNames[r.product_id]  = r.product_name || r.product_id;
     });
     const durTotals = {}; const durCounts = {};
-    (durRes.data || []).forEach((r) => {
+    (durRes.data || []).forEach(r => {
       if (!r.product_id || !r.duration_sec) return;
       durTotals[r.product_id] = (durTotals[r.product_id] || 0) + r.duration_sec;
       durCounts[r.product_id] = (durCounts[r.product_id] || 0) + 1;
     });
     const productStats = Object.keys(viewCounts)
-      .map((id) => ({
+      .map(id => ({
         id, name: viewNames[id],
         views: viewCounts[id],
         avgDuration: durCounts[id] ? Math.round(durTotals[id] / durCounts[id]) : 0,
       }))
       .sort((a, b) => b.views - a.views);
 
-    return { liveVisitors, todayVisitors, productStats };
+    // Geo stats: group by city+country, count unique sessions
+    const geoMap = {};
+    (geoRes.data || []).forEach(r => {
+      const key = `${r.city || 'Unknown'}||${r.country || 'Unknown'}||${r.country_code || '??'}`;
+      if (!geoMap[key]) geoMap[key] = { city: r.city || 'Unknown', country: r.country || 'Unknown', country_code: r.country_code || '??', sessions: new Set(), ips: new Set() };
+      if (r.session_id) geoMap[key].sessions.add(r.session_id);
+      if (r.ip_address) geoMap[key].ips.add(r.ip_address);
+    });
+    const geoStats = Object.values(geoMap)
+      .map(g => ({ city: g.city, country: g.country, country_code: g.country_code, sessions: g.sessions.size, unique_ips: g.ips.size }))
+      .sort((a, b) => b.sessions - a.sessions)
+      .slice(0, 20);
+
+    // Hourly traffic: count unique sessions per hour (Cairo +3)
+    const hourlyMap = {};
+    for (let h = 0; h < 24; h++) hourlyMap[h] = { sessions: new Set(), events: 0 };
+    (hourlyRes.data || []).forEach(r => {
+      const d = new Date(r.created_at);
+      const cairoHour = (d.getUTCHours() + 3) % 24;
+      hourlyMap[cairoHour].events++;
+      if (r.session_id) hourlyMap[cairoHour].sessions.add(r.session_id);
+    });
+    const hourlyStats = Array.from({ length: 24 }, (_, h) => ({
+      hour: h,
+      label: `${String(h).padStart(2,'0')}:00`,
+      sessions: hourlyMap[h].sessions.size,
+      events:   hourlyMap[h].events,
+    }));
+
+    // Page breakdown today
+    const pageMap = {};
+    (pageRes.data || []).forEach(r => {
+      const p = r.page_path || r.page || 'unknown';
+      if (!pageMap[p]) pageMap[p] = { sessions: new Set() };
+      if (r.session_id) pageMap[p].sessions.add(r.session_id);
+    });
+    const pageStats = Object.entries(pageMap)
+      .map(([page, v]) => ({ page, sessions: v.sessions.size }))
+      .sort((a, b) => b.sessions - a.sessions)
+      .slice(0, 10);
+
+    return { liveVisitors, todayVisitors, productStats, geoStats, hourlyStats, pageStats };
   }
 
   async function adminClearTodayAnalytics() {
@@ -1491,6 +1559,7 @@ const EyeApi = (function () {
     adminUpsertNavigationLink,
     adminDeleteNavigationLink,
     getSiteSetting,
+    getMaintenanceSetting,
     fetchMarqueeText,
     setMarqueeText,
     adminSetSiteSetting,

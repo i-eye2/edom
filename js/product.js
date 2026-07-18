@@ -282,7 +282,86 @@ document.addEventListener('DOMContentLoaded', async () => {
     } catch (_) {}
   }
 
+  /* ── Dynamic SEO update ───────────────────── */
+  try {
+    const pdName = __pdProduct.name || 'Product';
+    const pdDesc = __pdProduct.description
+      ? (__pdProduct.description.length > 155 ? __pdProduct.description.slice(0, 152) + '...' : __pdProduct.description)
+      : `Shop ${pdName} at EYE-EG — premium streetwear and clothing shipped across Egypt.`;
+    const pdImg = (imgs && imgs[0]) ? imgs[0] : 'https://eye-eg.store/pics/1.png';
+    const pdUrl = 'https://eye-eg.store/product.html?slug=' + encodeURIComponent(__pdProduct.slug || __pdProduct.id);
+    const pdPrice = __pdProduct.price ? String(Number(__pdProduct.price) / 100) : '0';
+    const pdAvail = __pdProduct.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock';
+    const pdTitle = pdName + ' | EYE-EG — Premium Streetwear Egypt';
+
+    // Update <title>
+    document.title = pdTitle;
+
+    // Update meta description
+    const metaDesc = document.querySelector('meta[name="description"]');
+    if (metaDesc) metaDesc.setAttribute('content', pdDesc);
+
+    // Update canonical
+    const canonical = document.querySelector('link[rel="canonical"]');
+    if (canonical) canonical.setAttribute('href', pdUrl);
+
+    // Update OG tags
+    const ogTitle = document.querySelector('meta[property="og:title"]');
+    if (ogTitle) ogTitle.setAttribute('content', pdTitle);
+    const ogDesc = document.querySelector('meta[property="og:description"]');
+    if (ogDesc) ogDesc.setAttribute('content', pdDesc);
+    const ogImg = document.querySelector('meta[property="og:image"]');
+    if (ogImg) ogImg.setAttribute('content', pdImg);
+    const ogUrl = document.querySelector('meta[property="og:url"]');
+    if (ogUrl) ogUrl.setAttribute('content', pdUrl);
+
+    // Update Twitter tags
+    const twTitle = document.querySelector('meta[name="twitter:title"]');
+    if (twTitle) twTitle.setAttribute('content', pdTitle);
+    const twDesc = document.querySelector('meta[name="twitter:description"]');
+    if (twDesc) twDesc.setAttribute('content', pdDesc);
+    const twImg = document.querySelector('meta[name="twitter:image"]');
+    if (twImg) twImg.setAttribute('content', pdImg);
+    const twUrl = document.querySelector('meta[name="twitter:url"]');
+    if (twUrl) twUrl.setAttribute('content', pdUrl);
+
+    // Inject Product JSON-LD
+    const ldScript = document.createElement('script');
+    ldScript.type = 'application/ld+json';
+    ldScript.textContent = JSON.stringify({
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Product",
+          "name": pdName,
+          "description": pdDesc,
+          "image": imgs.slice(0, 5),
+          "brand": { "@type": "Brand", "name": "EYE-EG" },
+          "offers": {
+            "@type": "Offer",
+            "url": pdUrl,
+            "priceCurrency": "EGP",
+            "price": pdPrice,
+            "availability": pdAvail,
+            "seller": { "@type": "Organization", "name": "EYE-EG" }
+          }
+        },
+        {
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://eye-eg.store/" },
+            { "@type": "ListItem", "position": 2, "name": "Shop", "item": "https://eye-eg.store/shop" },
+            { "@type": "ListItem", "position": 3, "name": pdName, "item": pdUrl }
+          ]
+        }
+      ]
+    });
+    document.head.appendChild(ldScript);
+  } catch (_seoErr) {}
+  /* ── End dynamic SEO ─────────────────────── */
+
   const sizes = Array.isArray(__pdProduct.sizes) ? __pdProduct.sizes : [];
+
   __pdSelectedSize = firstBuyableSize(__pdProduct);
   if (!__pdSelectedSize && sizes.length) __pdSelectedSize = sizes[0];
 

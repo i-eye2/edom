@@ -1,25 +1,74 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>𝐏𝐫𝐨𝐝𝐮𝐜𝐭 - 𝐄𝐘𝐄ᵀᴹ</title>
-<link rel="icon" type="image/png" href="pics/1.png">
-<link rel="stylesheet" href="css/shared.css" />
-<link rel="stylesheet" href="css/product.css" />
+  <!-- MAINTENANCE CHECK -->
+  <script>
+    (async function () {
+      try {
+        const res = await fetch("https://fuxqnwlxorojmpvcpxop.supabase.co/rest/v1/site_settings?key=eq.maintenance&select=value", {
+          headers: { 'apikey': "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ1eHFud2x4b3Jvam1wdmNweG9wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwMjAzMzgsImV4cCI6MjA5MTU5NjMzOH0.FFbbSp_JuLgNeimlPkZ2OJ-v2bRhZgZgkTyeJgk4QOc", 'Authorization': "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ1eHFud2x4b3Jvam1wdmNweG9wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwMjAzMzgsImV4cCI6MjA5MTU5NjMzOH0.FFbbSp_JuLgNeimlPkZ2OJ-v2bRhZgZgkTyeJgk4QOc" }
+        });
+        const data = await res.json();
+        if (data && data[0]) { const m = JSON.parse(data[0].value); if (m && m.active === true) { window.location.replace('maintenance.html'); } }
+      } catch (e) { }
+    })();
+  </script>
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Primary SEO — updated dynamically by product.js once product data loads -->
+  <title>Product | EYE-EG </title>
+  <meta name="description" content="Shop premium streetwear and clothing from EYE-EG. Quality oversized t-shirts, hoodies, and exclusive fashion pieces shipped across Egypt." />
+  <link rel="canonical" href="https://eye-eg.store/product" />
+  <meta name="robots" content="index, follow" />
+
+  <!-- Open Graph — updated dynamically -->
+  <meta property="og:type" content="product" />
+  <meta property="og:site_name" content="EYE-EG" />
+  <meta property="og:url" content="https://eye-eg.store/product" />
+  <meta property="og:title" content="Product | EYE-EG — Premium Streetwear" />
+  <meta property="og:description" content="Shop premium streetwear and clothing from EYE-EG. Quality oversized t-shirts, hoodies, and exclusive fashion pieces shipped across Egypt." />
+  <meta property="og:image" content="https://eye-eg.store/pics/1.png" />
+
+  <!-- Twitter Card — updated dynamically -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content="https://eye-eg.store/product" />
+  <meta name="twitter:title" content="Product | EYE-EG — Premium Streetwear" />
+  <meta name="twitter:description" content="Shop premium streetwear and clothing from EYE-EG. Quality oversized t-shirts, hoodies, and exclusive fashion pieces shipped across Egypt." />
+  <meta name="twitter:image" content="https://eye-eg.store/pics/1.png" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://fuxqnwlxorojmpvcpxop.supabase.co">
+  <link rel="dns-prefetch" href="https://ip-api.com">
+  <link rel="dns-prefetch" href="https://esm.sh">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&display=swap" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&display=swap"></noscript>
+  <link rel="icon" type="image/png" href="pics/1.png">
+  <link rel="stylesheet" href="css/shared.css" />
+  <link rel="stylesheet" href="css/product.css" />
+
+  <!-- Product Structured Data injected dynamically by product.js -->
 </head>
+
 <body>
-<div id="pageLoader" class="page-loader"><div class="loader-logo">eye</div><div class="loader-bar"></div></div>
-<div id="navbar-container"></div>
+  <div id="pageLoader" class="page-loader">
+    <div class="loader-logo">eye</div>
+    <div class="loader-bar"></div>
+  </div>
+  <div id="navbar-container"></div>
 
-<div class="product-page container" id="productRoot"></div>
+  <div class="product-page container" id="productRoot"></div>
 
-<div id="footer-container"></div>
-<div class="toast" id="toast"></div>
-<script src="js/config.js"></script>
-<script src="js/api.js"></script>
-<script src="js/analytics.js"></script>
-<script src="js/shared.js"></script>
-<script src="js/product.js"></script>
+  <div id="footer-container"></div>
+  <div class="toast" id="toast"></div>
+  <script src="js/config.js" defer></script>
+  <script src="js/api.js" defer></script>
+  <script src="js/analytics.js" defer></script>
+  <script src="js/shared.js" defer></script>
+  <script src="js/product.js" defer></script>
 </body>
+
 </html>

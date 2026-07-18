@@ -4,6 +4,27 @@
 // Cart → localStorage only (key eye_cart); not stored in Supabase.
 // ============================================================
 
+// --- Maintenance Mode Check ---
+window.__MAINTENANCE_PROMISE = (async function checkMaintenanceMode() {
+  const path = window.location.pathname.toLowerCase();
+  // Bypass if admin, login, or maintenance itself
+  if (path.includes('admin') || path.includes('login') || path.includes('maintenance')) return false;
+  
+  try {
+    if (window.EyeApi && typeof EyeApi.getMaintenanceSetting === 'function') {
+      const m = await EyeApi.getMaintenanceSetting();
+      if (m && m.active === true) {
+        // Hide body immediately to prevent any flash of content
+        if (document.body) document.body.style.visibility = 'hidden';
+        window.location.replace('maintenance.html');
+        return true;
+      }
+    }
+  } catch(e) {}
+  return false;
+})();
+// ------------------------------
+
 const CART_STORAGE_KEY = 'eye_cart';
 
 function readCartFromStorage() {
@@ -423,8 +444,8 @@ function renderFooter(navRows, hp) {
     <div class="footer-bottom">
       <div class="footer-bottom-inner">
         <p>${copy}</p>
-        <a href="https://makeurwebsite.vercel.app" target="_blank" class="made-by-badge">
-          Made by <span>makeurwebsite</span>
+        <a href="https://Jolardo.com" target="_blank" class="made-by-badge">
+          Made by <span>Jolardo</span>
         </a>
       </div>
     </div>
@@ -454,14 +475,14 @@ async function mountStandardShell(activePage) {
   await EyeApi.init();
   const navEl = document.getElementById('navbar-container');
   const footEl = document.getElementById('footer-container');
-  const isMobile = window.matchMedia('(max-width: 768px)').matches;
   if (!EyeApi.isRemote()) {
     if (navEl) navEl.innerHTML = renderBackendMissingBanner();
     if (footEl) footEl.innerHTML = '';
     return false;
   }
-  await injectMarquee();
-  const [navRows, hp, session] = await Promise.all([
+  // Parallelize all independent data fetches
+  const [, navRows, hp, session] = await Promise.all([
+    injectMarquee(),
     EyeApi.fetchNavigationLinks(),
     EyeApi.fetchHomepageJson(),
     EyeApi.getSessionUser(),
@@ -478,11 +499,9 @@ async function mountStandardShell(activePage) {
     Wishlist._ids = new Set();
   }
   Cart.updateBadge();
-  
   if (typeof EyeAnalytics !== 'undefined') {
     EyeAnalytics.trackPageView(activePage || 'unknown');
   }
-  
   return true;
 }
 
@@ -504,17 +523,23 @@ function initNavbar() {
   Cart.updateBadge();
 }
 
-function initLoader() {
+async function initLoader() {
   const loader = document.getElementById('pageLoader');
   if (!loader) return;
+  
+  if (window.__MAINTENANCE_PROMISE) {
+    const isMaintenance = await window.__MAINTENANCE_PROMISE;
+    if (isMaintenance) return; // Do not hide loader if redirecting
+  }
+
   const start = Date.now();
   const hide = () => {
     const elapsed = Date.now() - start;
-    const min = 1500; // Stay for at least 1.5s
+    const min = 400; // Minimum 400ms — prevents flash while removing artificial LCP delay
     const delay = Math.max(0, min - elapsed);
     setTimeout(() => {
       loader.classList.add('hidden');
-      setTimeout(() => { loader.style.display = 'none'; }, 800);
+      setTimeout(() => { loader.style.display = 'none'; }, 600);
     }, delay);
   };
   if (document.readyState === 'complete') hide();
